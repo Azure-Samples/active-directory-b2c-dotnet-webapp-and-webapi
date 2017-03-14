@@ -1,0 +1,37 @@
+﻿
+@{
+    ViewBag.Title = "To-Do List";
+}
+
+<h2>To-Do List</h2>
+
+@using (Html.BeginForm("Create", "Tasks", FormMethod.Post))
+{
+    <div>
+        New Item: <input type="text" name="description">
+        <input type="submit" value="Add">
+    </div>
+}
+
+<br />
+
+<table class="table table-bordered table-striped table-hover table-condensed" style="table-layout: auto">
+
+    <tr>
+        <th>Items:</th>
+    </tr>
+
+    @foreach (var item in ViewBag.Tasks)
+    {
+        <tr>
+            <td>
+                @using (Html.BeginForm("Delete", "Tasks", FormMethod.Post))
+                {
+                    @item["Text"]
+                    <button name="id" value="@item["Id"]" style="float:right">Delete</button>
+                }
+            </td>
+        </tr>
+    }
+
+</table>
