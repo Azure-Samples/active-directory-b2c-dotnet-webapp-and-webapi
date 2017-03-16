@@ -40,7 +40,7 @@ namespace TaskWebApp
         public const string ObjectIdElement = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
 
         /*
-        * Initiate the OWIN middleware 
+        * Configure the OWIN middleware 
         */
         public void ConfigureAuth(IAppBuilder app)
         {
