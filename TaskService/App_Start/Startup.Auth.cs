@@ -18,7 +18,7 @@ namespace TaskService
         public static string DefaultPolicy = SignUpSignInPolicy;
 
         /*
-         * Initiate the authorization OWIN middleware 
+         * Configure the authorization OWIN middleware 
          */
         public void ConfigureAuth(IAppBuilder app)
         {

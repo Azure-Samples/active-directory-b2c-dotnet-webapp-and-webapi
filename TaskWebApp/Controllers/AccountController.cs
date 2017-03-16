@@ -46,7 +46,7 @@ namespace TaskWebApp.Controllers
         }
 
         /*
-         *  Called when requesting to reset a password (after logging in)
+         *  Called when requesting to reset a password
          */
         public void ResetPassword()
         {
