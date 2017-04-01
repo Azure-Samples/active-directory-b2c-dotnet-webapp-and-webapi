@@ -1,3 +1,9 @@
+---
+services: active-directory-b2c
+platforms: dotnet
+author: parakhj
+---
+
 # Azure AD B2C: Call a .NET web API from a .NET web app
 
 This sample has a solution file that contains two projects: `TaskWebApp` and `TaskService`. `TaskWebApp` is a "To-do" MVC web application that the user interacts with. `TaskService` is the app's back-end web API that stores each user's to-do list. You can use this sample to quickly get started with building a .NET web app, web api, and calling the api from the web app.
