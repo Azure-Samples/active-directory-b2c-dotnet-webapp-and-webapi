@@ -33,8 +33,9 @@ namespace TaskWebApp
         public static string DefaultPolicy = SignUpSignInPolicyId;
 
         // API Scopes
-        public const string ReadTasksScope = "https://fabrikamb2c.onmicrosoft.com/tasks/read";
-        public const string WriteTasksScope = "https://fabrikamb2c.onmicrosoft.com/tasks/write";
+        public static string ApiIdentifier = ConfigurationManager.AppSettings["api:ApiIdentifier"];
+        public static string ReadTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:ReadScope"];
+        public static string WriteTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:WriteScope"];
 
         // OWIN auth middleware constants
         public const string ObjectIdElement = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";

@@ -3,7 +3,6 @@ using Newtonsoft.Json.Linq;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -16,8 +15,6 @@ namespace TaskWebApp.Controllers
     [Authorize]
     public class TasksController : Controller
     {
-
-        private String accessToken;
         private String apiEndpoint = Startup.ServiceUrl + "/api/tasks/";
 
         // GET: Makes a call to the API and retrieves the list of tasks
@@ -26,7 +23,7 @@ namespace TaskWebApp.Controllers
             try
             {
                 // Retrieve the token with the specified scopes
-                acquireToken(new string[] { Startup.ReadTasksScope });
+                var accessToken = await acquireToken(new string[] { Startup.ReadTasksScope });
 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, apiEndpoint);
@@ -44,14 +41,14 @@ namespace TaskWebApp.Controllers
                         ViewBag.Tasks = tasks;
                         return View();
                     case HttpStatusCode.Unauthorized:
-                        return await errorAction("Please sign in again. " + response.ReasonPhrase);
+                        return errorAction("Please sign in again. " + response.ReasonPhrase);
                     default:
-                        return await errorAction("Error. Status code = " + response.StatusCode);
+                        return errorAction("Error. Status code = " + response.StatusCode);
                 }
             }
             catch (Exception ex)
             {
-                return await errorAction("Error reading to do list: " + ex.Message);
+                return errorAction("Error reading to do list: " + ex.Message);
             }
         }
 
@@ -62,7 +59,7 @@ namespace TaskWebApp.Controllers
             try
             {
                 // Retrieve the token with the specified scopes
-                acquireToken(new string[] { Startup.WriteTasksScope });
+                var accessToken = await acquireToken(new string[] { Startup.WriteTasksScope });
 
                 // Set the content
                 var httpContent = new[] {new KeyValuePair<string, string>("Text", description)};
@@ -82,14 +79,14 @@ namespace TaskWebApp.Controllers
                     case HttpStatusCode.NoContent:
                         return new RedirectResult("/Tasks");
                     case HttpStatusCode.Unauthorized:
-                        return await errorAction("Please sign in again. " + response.ReasonPhrase);
+                        return errorAction("Please sign in again. " + response.ReasonPhrase);
                     default:
-                        return await errorAction("Error. Status code = " + response.StatusCode);
+                        return errorAction("Error. Status code = " + response.StatusCode);
                 }
             }
             catch (Exception ex)
             {
-                return await errorAction("Error writing to list: " + ex.Message);
+                return errorAction("Error writing to list: " + ex.Message);
             }
         }
 
@@ -100,7 +97,7 @@ namespace TaskWebApp.Controllers
             try
             {
                 // Retrieve the token with the specified scopes
-                acquireToken(new string[] { Startup.WriteTasksScope });
+                var accessToken = await acquireToken(new string[] { Startup.WriteTasksScope });
 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, apiEndpoint + id);
@@ -116,21 +113,21 @@ namespace TaskWebApp.Controllers
                     case HttpStatusCode.NoContent:
                         return new RedirectResult("/Tasks");
                     case HttpStatusCode.Unauthorized:
-                        return await errorAction("Please sign in again. " + response.ReasonPhrase);
+                        return errorAction("Please sign in again. " + response.ReasonPhrase);
                     default:
-                        return await errorAction("Error. Status code = " + response.StatusCode);
+                        return errorAction("Error. Status code = " + response.StatusCode);
                 }
             }
             catch (Exception ex)
             {
-                return await errorAction("Error deleting from list: " + ex.Message);
+                return errorAction("Error deleting from list: " + ex.Message);
             }
         }
 
         /*
          * Uses MSAL to retrieve the token from the cache or Azure AD B2C
          */
-        private async void acquireToken(String[] scope)
+        private async Task<String> acquireToken(String[] scope)
         {
             string userObjectID = ClaimsPrincipal.Current.FindFirst(Startup.ObjectIdElement).Value;
             string authority = String.Format(Startup.AadInstance, Startup.Tenant, Startup.DefaultPolicy);
@@ -143,13 +140,13 @@ namespace TaskWebApp.Controllers
                                                 new NaiveSessionCache(userObjectID, this.HttpContext));
             AuthenticationResult result = await app.AcquireTokenSilentAsync(scope);
 
-            accessToken = result.Token;
+            return result.Token;
         }
 
         /*
          * Helper function for returning an error message
          */
-        private async Task<ActionResult> errorAction(String message)
+        private ActionResult errorAction(String message)
         {
             return new RedirectResult("/Error?message=" + message);
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -20,8 +21,8 @@ namespace TaskService.Controllers
         public const string objectIdElement = "http://schemas.microsoft.com/identity/claims/objectidentifier";
 
         // API Scopes
-        public const string ReadPermission = "read";
-        public const string WritePermission = "write";
+        public static string ReadPermission = ConfigurationManager.AppSettings["api:ReadScope"];
+        public static string WritePermission = ConfigurationManager.AppSettings["api:WriteScope"];
 
         /*
          * GET all tasks for user
