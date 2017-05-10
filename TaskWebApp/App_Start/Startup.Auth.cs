@@ -12,6 +12,9 @@ using System.Configuration;
 using System.IdentityModel.Tokens;
 using System.Threading.Tasks;
 using System.Web;
+using System.IdentityModel.Claims;
+
+using TaskWebApp.Models;
 
 namespace TaskWebApp
 {
@@ -36,17 +39,22 @@ namespace TaskWebApp
         public static string ApiIdentifier = ConfigurationManager.AppSettings["api:ApiIdentifier"];
         public static string ReadTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:ReadScope"];
         public static string WriteTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:WriteScope"];
+        public static string[] Scopes = new string[]{ ReadTasksScope, WriteTasksScope };
 
         // OWIN auth middleware constants
         public const string ObjectIdElement = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
+
+        // Authorities
+        public static string Authority = String.Format(AadInstance, Tenant, DefaultPolicy);
 
         /*
         * Configure the OWIN middleware 
         */
         public void ConfigureAuth(IAppBuilder app)
         {
-            app.UseCookieAuthentication(new CookieAuthenticationOptions());
             app.SetDefaultSignInAsAuthenticationType(CookieAuthenticationDefaults.AuthenticationType);
+
+            app.UseCookieAuthentication(new CookieAuthenticationOptions());
 
             app.UseOpenIdConnectAuthentication(
                 new OpenIdConnectAuthenticationOptions
@@ -73,8 +81,8 @@ namespace TaskWebApp
                         NameClaimType = "name"
                     },
 
-                    // Specify the scope by appending all of the scopes requested into one string (seperated by a blank space)
-                    Scope = $"{OpenIdConnectScopes.OpenId} {ReadTasksScope} {WriteTasksScope}"
+                    // Specify the scope by appending all of the scopes requested into one string (separated by a blank space)
+                    Scope = $"openid profile offline_access {ReadTasksScope} {WriteTasksScope}"
                 }
             );
         }
@@ -132,15 +140,18 @@ namespace TaskWebApp
             // Extract the code from the response notification
             var code = notification.Code;
 
-            var userObjectId = notification.AuthenticationTicket.Identity.FindFirst(ObjectIdElement).Value;
-            var authority = String.Format(AadInstance, Tenant, DefaultPolicy);
-            var httpContext = notification.OwinContext.Environment["System.Web.HttpContextBase"] as HttpContextBase;
-
-            // Exchange the code for a token. Make sure to specify the necessary scopes
-            ClientCredential cred = new ClientCredential(ClientSecret);
-            ConfidentialClientApplication app = new ConfidentialClientApplication(authority, Startup.ClientId,
-                                                    RedirectUri, cred, new NaiveSessionCache(userObjectId, httpContext));
-            var authResult = await app.AcquireTokenByAuthorizationCodeAsync(new string[] { ReadTasksScope, WriteTasksScope }, code, DefaultPolicy);
+            string signedInUserID = notification.AuthenticationTicket.Identity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            TokenCache userTokenCache = new MSALSessionCache(signedInUserID, notification.OwinContext.Environment["System.Web.HttpContextBase"] as HttpContextBase).GetMsalCacheInstance();
+            ConfidentialClientApplication cca = new ConfidentialClientApplication(ClientId, Authority, RedirectUri, new ClientCredential(ClientSecret), userTokenCache, null);
+            try
+            {
+                AuthenticationResult result = await cca.AcquireTokenByAuthorizationCodeAsync(code, Scopes);
+            }
+            catch (Exception ex)
+            {
+                //TODO: Handle
+                throw;
+            }
         }
     }
 }
