@@ -81,8 +81,8 @@ namespace TaskWebApp
                         NameClaimType = "name"
                     },
 
-                    // Specify the scope by appending all of the scopes requested into one string (seperated by a blank space)
-                    Scope = $"{OpenIdConnectScopes.OpenId} {ReadTasksScope} {WriteTasksScope}"
+                    // Specify the scope by appending all of the scopes requested into one string (separated by a blank space)
+                    Scope = $"openid profile offline_access {ReadTasksScope} {WriteTasksScope}"
                 }
             );
         }
