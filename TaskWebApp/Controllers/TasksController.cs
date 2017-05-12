@@ -25,13 +25,18 @@ namespace TaskWebApp.Controllers
             try
             {
                 // Retrieve the token with the specified scopes
-                var accessToken = await AcquireTokenSilentAsync(new string[] { Startup.ReadTasksScope });
+                var scope = new string[] { Startup.ReadTasksScope };
+                string signedInUserID = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+                TokenCache userTokenCache = new MSALSessionCache(signedInUserID, this.HttpContext).GetMsalCacheInstance();
+                ConfidentialClientApplication cca = new ConfidentialClientApplication(Startup.ClientId, Startup.Authority, Startup.RedirectUri, new ClientCredential(Startup.ClientSecret), userTokenCache, null);
+
+                AuthenticationResult result = await cca.AcquireTokenSilentAsync(scope, cca.Users.FirstOrDefault(), Startup.Authority, false);
 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, apiEndpoint);
 
                 // Add token to the Authorization header and make the request
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken);
                 HttpResponseMessage response = await client.SendAsync(request);
 
                 // Handle the response
@@ -64,7 +69,13 @@ namespace TaskWebApp.Controllers
                 string accessToken = null;
                 try
                 {
-                    accessToken = await AcquireTokenSilentAsync(new string[] { Startup.WriteTasksScope });
+                    var scope = new string[] { Startup.WriteTasksScope };
+                    string signedInUserID = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+                    TokenCache userTokenCache = new MSALSessionCache(signedInUserID, this.HttpContext).GetMsalCacheInstance();
+                    ConfidentialClientApplication cca = new ConfidentialClientApplication(Startup.ClientId, Startup.Authority, Startup.RedirectUri, new ClientCredential(Startup.ClientSecret), userTokenCache, null);
+
+                    AuthenticationResult result = await cca.AcquireTokenSilentAsync(scope, cca.Users.FirstOrDefault(), Startup.Authority, false);
+                    accessToken = result.AccessToken;
                 }
                 catch (Exception)
                 {
@@ -87,6 +98,7 @@ namespace TaskWebApp.Controllers
                 {
                     case HttpStatusCode.OK:
                     case HttpStatusCode.NoContent:
+                    case HttpStatusCode.Created:
                         return new RedirectResult("/Tasks");
                     case HttpStatusCode.Unauthorized:
                         return ErrorAction("Please sign in again. " + response.ReasonPhrase);
@@ -107,13 +119,19 @@ namespace TaskWebApp.Controllers
             try
             {
                 // Retrieve the token with the specified scopes
-                var accessToken = await AcquireTokenSilentAsync(new string[] { Startup.WriteTasksScope });
+                var scope = new string[] { Startup.WriteTasksScope };
+                string signedInUserID = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
+                TokenCache userTokenCache = new MSALSessionCache(signedInUserID, this.HttpContext).GetMsalCacheInstance();
+                ConfidentialClientApplication cca = new ConfidentialClientApplication(Startup.ClientId, Startup.Authority, Startup.RedirectUri, new ClientCredential(Startup.ClientSecret), userTokenCache, null);
+
+                AuthenticationResult result = await cca.AcquireTokenSilentAsync(scope, cca.Users.FirstOrDefault(), Startup.Authority, false);
+
 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, apiEndpoint + id);
 
                 // Add token to the Authorization header and send the request
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken); 
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", result.AccessToken); 
                 HttpResponseMessage response = await client.SendAsync(request);
 
                 // Handle the response
@@ -132,17 +150,6 @@ namespace TaskWebApp.Controllers
             {
                 return ErrorAction("Error deleting from list: " + ex.Message);
             }
-        }
-
-        // Put this inline
-        private async Task<String> AcquireTokenSilentAsync(String[] scope)
-        {
-            string signedInUserID = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
-            TokenCache userTokenCache = new MSALSessionCache(signedInUserID, this.HttpContext).GetMsalCacheInstance();
-            ConfidentialClientApplication cca = new ConfidentialClientApplication(Startup.ClientId, Startup.Authority, Startup.RedirectUri, new ClientCredential(Startup.ClientSecret), userTokenCache, null);
-            
-            AuthenticationResult result = await cca.AcquireTokenSilentAsync(scope, cca.Users.FirstOrDefault(), Startup.Authority, false);
-            return result.AccessToken;
         }
 
         /*
