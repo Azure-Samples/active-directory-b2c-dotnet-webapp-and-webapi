@@ -99,7 +99,7 @@ namespace TaskWebApp
             {
                 notification.ProtocolMessage.Scope = OpenIdConnectScopes.OpenId;
                 notification.ProtocolMessage.ResponseType = OpenIdConnectResponseTypes.IdToken;
-                notification.ProtocolMessage.IssuerAddress = notification.ProtocolMessage.IssuerAddress.Replace(DefaultPolicy, policy);
+                notification.ProtocolMessage.IssuerAddress = notification.ProtocolMessage.IssuerAddress.ToLower().Replace(DefaultPolicy.ToLower(), policy.ToLower());
             }
 
             return Task.FromResult(0);
