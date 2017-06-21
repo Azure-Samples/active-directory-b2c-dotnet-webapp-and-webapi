@@ -1,7 +1,7 @@
 ---
 services: active-directory-b2c
 platforms: dotnet
-author: parakhj
+author: dstrockis
 ---
 
 # Azure AD B2C: Call a .NET web API from a .NET web app
