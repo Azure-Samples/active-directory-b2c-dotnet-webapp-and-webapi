@@ -15,6 +15,11 @@ using System.Web;
 using System.IdentityModel.Claims;
 
 using TaskWebApp.Models;
+using System.Net.Http;
+using System.Net.Http.Headers;
+
+using c = System.Security.Claims;
+using Newtonsoft.Json.Linq;
 
 namespace TaskWebApp
 {
@@ -40,6 +45,11 @@ namespace TaskWebApp
         public static string ReadTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:ReadScope"];
         public static string WriteTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:WriteScope"];
         public static string[] Scopes = new string[]{ ReadTasksScope, WriteTasksScope };
+
+        // Graph Client Registration to retrieve Roles
+        public static string GraphClientId = ConfigurationManager.AppSettings["graph:ClientId"];
+        public static string GraphClientSecret = ConfigurationManager.AppSettings["graph:ClientSecret"];
+        public static string GraphRedirectUri = ConfigurationManager.AppSettings["graph:RedirectUri"];
 
         // OWIN auth middleware constants
         public const string ObjectIdElement = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
@@ -148,6 +158,43 @@ namespace TaskWebApp
                 AuthenticationResult result = await cca.AcquireTokenByAuthorizationCodeAsync(code, Scopes);
             }
             catch (Exception ex)
+            {
+                //TODO: Handle
+                throw;
+            }
+
+            // Only retrieve roles if a GraphClient has been configured.
+            if (string.IsNullOrEmpty(GraphClientSecret))
+                return;
+
+            var authority = $"https://login.microsoftonline.com/{Tenant}";
+            var graphCca = new ConfidentialClientApplication(GraphClientId, authority, GraphRedirectUri, new ClientCredential(GraphClientSecret), userTokenCache, null);
+            string[] scopes = new string[] { "https://graph.microsoft.com/.default" };
+
+            try
+            {
+                AuthenticationResult authenticationResult = await graphCca.AcquireTokenForClientAsync(scopes);
+                string token = authenticationResult.AccessToken;
+
+                using (var client = new HttpClient())
+                {
+                    string requestUrl = $"https://graph.microsoft.com/v1.0/users/{signedInUserID}/memberOf?$select=displayName";
+
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                    HttpResponseMessage response = await client.SendAsync(request);
+                    var responseString = await response.Content.ReadAsStringAsync();
+
+                    var json = JObject.Parse(responseString);
+                    foreach (var group in json["value"])
+                        notification.AuthenticationTicket.Identity.AddClaim(new c.Claim(c.ClaimTypes.Role, group["displayName"].ToString(), c.ClaimValueTypes.String, "Graph"));
+
+                    //TODO: Handle paging. 
+                    // If the user is a member of more than 100 groups, 
+                    // you'll need to retrieve the next page of results.
+                }
+            } catch (Exception ex)
             {
                 //TODO: Handle
                 throw;

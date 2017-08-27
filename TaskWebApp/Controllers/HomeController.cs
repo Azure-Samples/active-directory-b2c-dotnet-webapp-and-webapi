@@ -26,5 +26,11 @@ namespace TaskWebApp.Controllers
 
             return View("Error");
         }
+
+        [Authorize(Roles = "tdlr_admins")]
+        public string Admin()
+        {
+            return "You're a member!";
+        }
     }
 }
