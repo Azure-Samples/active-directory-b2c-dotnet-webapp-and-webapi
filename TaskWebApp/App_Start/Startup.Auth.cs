@@ -191,6 +191,7 @@ namespace TaskWebApp
                         notification.AuthenticationTicket.Identity.AddClaim(new c.Claim(c.ClaimTypes.Role, group["displayName"].ToString(), c.ClaimValueTypes.String, "Graph"));
 
                     //TODO: Handle paging. 
+                    // https://developer.microsoft.com/en-us/graph/docs/concepts/paging
                     // If the user is a member of more than 100 groups, 
                     // you'll need to retrieve the next page of results.
                 }
