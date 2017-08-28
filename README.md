@@ -37,14 +37,14 @@ Our sample is configured to use the policies and client ID of our demo tenant. T
 Open `web.config` in the `TaskService` project and replace the values for
 
 * `ida:Tenant` with your tenant name
-* `ida:ClientId` with your web api application ID
+* `ida:ClientId` with your Azure AD B2C web api application ID (see step 2 in the Getting started section)
 * `ida:SignUpSignInPolicyId` with your "Sign-up or Sign-in" policy name
 
 
 Open `web.config` in the `TaskWebApp` project and replace the values for
 
 * `ida:Tenant` with your tenant name
-* `ida:ClientId` with your web app application ID
+* `ida:ClientId` with your Azure AD B2C web app application ID (see step 3 in the Getting started section)
 * `ida:ClientSecret` with your web app secret key
 * `ida:SignUpSignInPolicyId` with your "Sign-up or Sign-in" policy name
 * `ida:EditProfilePolicyId` with your "Edit Profile" policy name
