@@ -15,6 +15,7 @@ namespace TaskService.Controllers
         // In this service we're using an in-memory list to store tasks, just to keep things simple.
         // All of your tasks will be lost each time you run the service
         private static List<Models.Task> db = new List<Models.Task>();
+        private static int taskId;
 
         // OWIN auth middleware constants
         public const string scopeElement = "http://schemas.microsoft.com/identity/claims/scope";
@@ -46,6 +47,7 @@ namespace TaskService.Controllers
                 throw new WebException("Please provide a task description");
 
             string owner = ClaimsPrincipal.Current.FindFirst(objectIdElement).Value;
+            task.Id = taskId++;
             task.Owner = owner;
             task.Completed = false;
             task.DateModified = DateTime.UtcNow;
