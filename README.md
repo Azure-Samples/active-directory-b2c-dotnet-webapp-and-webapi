@@ -34,7 +34,7 @@ Once singed in, you can create and edit your todo items.
 From your shell or command line:
 
 ```
-git clone https://github.com/Azure-Samples/active-directory-b2c-dotnet-desktop.git
+git clone https://github.com/Azure-Samples/active-directory-b2c-dotnet-webapp-and-webapi.git
 ```
 
 ### Step 2: Run the project
