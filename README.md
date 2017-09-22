@@ -74,9 +74,9 @@ If you already have existing policies in your Azure AD B2C tenant, feel free to 
 
 Follow the instructions at [register a Web API with Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-app-registration#register-a-web-api) to register the ASP.NET Web API sample with your tenant. Registering your Web API allows you to define the scopes that your ASP.NET Web Application will request access tokens for. 
 
-Provide the following values for the Node.js Web API registration: 
+Provide the following values for the ASP.NET Web API registration: 
 
-- Provide a descriptive Name for the Node.js Web API, for example, `My Test ASP.NET Web API`. You will identify this application by its Name whenever working in the Azure portal.
+- Provide a descriptive Name for the ASP.NET Web API, for example, `My Test ASP.NET Web API`. You will identify this application by its Name whenever working in the Azure portal.
 - Mark **Yes** for the **Web App/Web API** setting for your application.
 - Set the **Reply URL** to `https://localhost:44332/`. This is the port number that this ASP.NET Web API sample is configured to run on. 
 - Set the **AppID URI** to `demoapi`. This AppID URI is a unique identifier representing this particular ASP.NET Web API. The AppID URI is used to construct the scopes that are configured in your ASP.NET Web Application. For example, in this ASP.NET Web API sample, the scope will have the value `https://<your-tenant-name>.onmicrosoft.com/demoapi/read` 
@@ -94,7 +94,6 @@ Your web application registration should include the following information:
 
 - Provide a descriptive Name for your web appliation, for example, `My Test ASP.NET Web Application`. You can identify this application by its Name within the Azure portal.
 - Mark **Yes** for the `Include web app / web API` option.
-- Mark **Yes** for the `Allow implicit flow`
 - Set the Reply URL to `https://localhost:44316/` This is the port number that this ASP.NET Web Application sample is configured to run on. 
 - Create your application.
 - Once the application is created, you need to create a Web App client secret. Go to the **Keys** page for your Web App registration and click **Generate Key**. Note: You will only see the secret once. Make sure you copy it.
