@@ -45,7 +45,7 @@ You will need to run both the `TaskWebApp` and `TaskService` projects at the sam
 
 1. In Solution Explorer, right-click on the solution and open the **Common Properties - Startup Project** window. 
 2. Select **Multiple startup projects**.
-3. Change the **Action** for both projects from None to **Start** as shown in the image below.
+3. Change the **Action** for both projects from **None** to **Start** as shown in the image below.
 
 TODO: add image
 
@@ -58,7 +58,90 @@ The sample demonstrates the following functionality once signed-in:
 
 ## Using your own Azure AD B2C Tenant
 
+In the previous section, you learned how to run the sample application using the demo environment. In this section, you'll learn how to configure the ASP.NET Web Application and the ASP.NET Web API to work with your own Azure AD B2C Tenant.
 
+### Step 1: Get your own Azure AD B2C tenant
+
+First, you'll need an Azure AD B2C tenant. If you don't have an existing Azure AD B2C tenant that you can use for testing purposes, you can create your own by following these [instructions](https://azure.microsoft.com/documentation/articles/active-directory-b2c-get-started/).
+
+### Step 2: Create your own policies
+
+This sample uses three types of policies: a unified sign-up/sign-in policy, a profile editing policy, and a password reset policy. Create one policy of each type by following [the built-in policy instructions](https://azure.microsoft.com/documentation/articles/active-directory-b2c-reference-policies). You may choose to include as many or as few identity providers as you wish.
+
+If you already have existing policies in your Azure AD B2C tenant, feel free to re-use those policies in this sample.
+
+### Step 3: Register your ASP.NET Web API with Azure AD B2C
+
+Follow the instructions at [register a Web API with Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-app-registration#register-a-web-api) to register the ASP.NET Web API sample with your tenant. Registering your Web API allows you to define the scopes that your ASP.NET Web Application will request access tokens for. 
+
+Provide the following values for the Node.js Web API registration: 
+
+- Provide a descriptive Name for the Node.js Web API, for example, `My Test ASP.NET Web API`. You will identify this application by its Name whenever working in the Azure portal.
+- Mark **Yes** for the **Web App/Web API** setting for your application.
+- Set the **Reply URL** to `https://localhost:44332/`. This is the port number that this ASP.NET Web API sample is configured to run on. 
+- Set the **AppID URI** to `demoapi`. This AppID URI is a unique identifier representing this particular ASP.NET Web API. The AppID URI is used to construct the scopes that are configured in your ASP.NET Web Application. For example, in this ASP.NET Web API sample, the scope will have the value `https://<your-tenant-name>.onmicrosoft.com/demoapi/read` 
+- Create the application. 
+- Once the application is created, open your `My Test ASP.NET Web API` application and then open the **Published Scopes** window (in the left nav menu). Add the following 2 scopes:
+  - **Scope** named `read` followed by a description `demoing a read scenario`. 
+  - **Scope** named `write` followed by a description `demoing a write scenario`.
+- Click **Save**.
+
+### Step 4: Register your ASP.NET Web Application with Azure AD B2C
+
+Follow the instructions at [register a Web Application with Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-devquickstarts-web-dotnet-susi)
+
+Your web application registration should include the following information:
+
+- Provide a descriptive Name for your web appliation, for example, `My Test ASP.NET Web Application`. You can identify this application by its Name within the Azure portal.
+- Mark **Yes** for the `Include web app / web API` option.
+- Mark **Yes** for the `Allow implicit flow`
+- Set the Reply URL to `https://localhost:44316/` This is the port number that this ASP.NET Web Application sample is configured to run on. 
+- Create your application.
+- Once the application is created, you need to create a Web App client secret. Go to the **Keys** page for your Web App registration and click **Generate Key**. Note: You will only see the secret once. Make sure you copy it.
+- Open your `My Test ASP.NET Web Application` and open the **API Access** window (in the left nav menu). Click Add and select the name of the Web API you registered previously, for example `My Test ASP.NET Web API`. Select the scope(s) you defined previously, for example, `read` and `write` and hit Save.
+
+### Step 5: Configure your Visual Studio project with your Azure AD B2C app registrations
+
+In this section, you will change the code in both projects to use your tenant. 
+
+:warning: Since both projects have a `Web.config` file, pay close attention which `Web.config` file you are modifying.
+
+#### Step 5a: Modify the `TaskWebApp` project
+
+1. Open the `Web.config` file for the `TaskWebApp` project.
+1. Find the key `ida:Tenant` and replace the value with your `<your-tenant-name>.onmicrosoft.com`.
+1. Find the key `ida:ClientId` and replace the value with the Application ID from your web application `My Test ASP.NET Web Application` registration in the Azure portal.
+1. Find the key `ida:ClientSecret` and replace the value with the Client secret from your web application in in the Azure portal.
+1. Find the keys representing the policies, e.g. `ida:SignUpSignInPolicyId` and replace the values with the corresponding policy names you created, e.g. `b2c_1_SiUpIn`
+1. Comment out the aadb2cplayground site and uncomment the `locahost:44332` for the TaskServiceUrl – this is the localhost port that the Web API will run on. Your code should look like the following below.
+    ```
+    <!--<add key="api:TaskServiceUrl" value="https://aadb2cplayground.azurewebsites.net/" />-->
+    
+    <add key="api:TaskServiceUrl" value="https://localhost:44332/"/> 
+    ```
+
+1. Change the `api:ApiIentifier` key value to the App ID URI of the API you specified in the Web API registration. This App ID URI tells B2C which API your Web Application wants permissions to. 
+    ```
+    <!--<add key="api:ApiIdentifier" value="https://fabrikamb2c.onmicrosoft.com/api/" />—>
+
+    <add key="api:ApiIdentifier" value="https://<your-tenant-name>.onmicrosoft.com/demoapi/" />
+    ```
+1. Find the keys representing the scopes, e.g. `api:ReadScope` and replace the values with the corresponding scope names you created, e.g. `read`
+
+
+#### Step 5b: Modify the `TaskService` project
+
+1. Open the `Web.config` file for the `TaskService` project.
+1. Find the key `ida:Tenant` and replace the value with your `<your-tenant-name>.onmicrosoft.com`.
+1. Find the key `ida:ClientId` and replace the value with the Application ID from your web API `My Test ASP.NET Web API` registration in the Azure portal.
+1. Find the key `ida:SignUpSignInPolicyId` and replace the value with the policy name you created, e.g. `b2c_1_SiUpIn`
+1. Find the keys representing the scopes, e.g. `api:ReadScope` and `api:WriteScope` and replace the values with the corresponding scope names you created if needed, e.g. `read` and `write`
+
+#### Step 5c: Run both projects
+
+You need to run both projects at the same time. If you did not complete the demo tenant instructions above, you need to [configure Visual Studio for multiple startup projects](#Run the projects).
+
+You can now perform all the previous steps as seen in the demo tenant environment.
 
 ## Next Steps
 
