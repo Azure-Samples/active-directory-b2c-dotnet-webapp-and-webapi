@@ -4,7 +4,7 @@ platforms: dotnet
 author: dstrockis
 ---
 
-# Azure AD B2C: Call a ASP.NET Web API from a ASP.NET Web App
+# Azure AD B2C: Call an ASP.NET Web API from an ASP.NET Web App
 
 This sample contains a solution file that contains two projects: `TaskWebApp` and `TaskService`. 
 
@@ -20,8 +20,8 @@ The sample covers the following:
 
 There are two ways to run this sample:
 
-1. **Using the demo environment** - The sample is already configured to use a demo environment and can be run by downloading this repository and running the app on your machine. Follow the steps listed below in the section [Using the demo environment](#Using the demo environment)
-2. **Using your own Azure AD B2C tenant** - Once you have the sample running locally using the demo tenant, you can configure the sample to use your own Azure AD B2C tenant instead. Follow the steps listed below in the section [Using your own Azure AD B2C tenant](#Using your own Azure AD B2C Tenant)
+1. **Using the demo environment** - The sample is already configured to use a demo environment and can be run by downloading this repository and running the app on your machine. Follow the steps listed below in the section [Using the demo environment](#Using-the-demo-environment)
+2. **Using your own Azure AD B2C tenant** - Once you have the sample running locally using the demo tenant, you can configure the sample to use your own Azure AD B2C tenant instead. Follow the steps listed below in the section [Using your own Azure AD B2C tenant](#Using-your-own-Azure-AD-B2C-Tenant)
 
 ## Using the demo environment
 
@@ -47,7 +47,7 @@ You will need to run both the `TaskWebApp` and `TaskService` projects at the sam
 2. Select **Multiple startup projects**.
 3. Change the **Action** for both projects from **None** to **Start** as shown in the image below.
 
-TODO: add image
+![Visual Studio using multiple startup projects](https://user-images.githubusercontent.com/11529908/30752751-1e8dd9f2-9f72-11e7-9755-c3f5b6b753a5.png)
 
 The sample demonstrates the following functionality once signed-in: 
 
@@ -93,11 +93,11 @@ Follow the instructions at [register a Web Application with Azure AD B2C](https:
 Your web application registration should include the following information:
 
 - Provide a descriptive Name for your web appliation, for example, `My Test ASP.NET Web Application`. You can identify this application by its Name within the Azure portal.
-- Mark **Yes** for the `Include web app / web API` option.
+- Mark **Yes** for the **Include web app / web API** option.
 - Set the Reply URL to `https://localhost:44316/` This is the port number that this ASP.NET Web Application sample is configured to run on. 
 - Create your application.
 - Once the application is created, you need to create a Web App client secret. Go to the **Keys** page for your Web App registration and click **Generate Key**. Note: You will only see the secret once. Make sure you copy it.
-- Open your `My Test ASP.NET Web Application` and open the **API Access** window (in the left nav menu). Click Add and select the name of the Web API you registered previously, for example `My Test ASP.NET Web API`. Select the scope(s) you defined previously, for example, `read` and `write` and hit Save.
+- Open your `My Test ASP.NET Web Application` and open the **API Access** window (in the left nav menu). Click Add and select the name of the Web API you registered previously, for example `My Test ASP.NET Web API`. Select the scope(s) you defined previously, for example, `read` and `write` and hit **Ok**.
 
 ### Step 5: Configure your Visual Studio project with your Azure AD B2C app registrations
 
@@ -138,7 +138,7 @@ In this section, you will change the code in both projects to use your tenant.
 
 #### Step 5c: Run both projects
 
-You need to run both projects at the same time. If you did not complete the demo tenant instructions above, you need to [configure Visual Studio for multiple startup projects](#Run the projects).
+You need to run both projects at the same time. If you did not complete the demo tenant instructions above, you need to [configure Visual Studio for multiple startup projects](#Run-the-project).
 
 You can now perform all the previous steps as seen in the demo tenant environment.
 
