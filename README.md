@@ -119,12 +119,14 @@ In this section, you will change the code in both projects to use your tenant.
     <add key="api:TaskServiceUrl" value="https://localhost:44332/"/> 
     ```
 
-1. Change the `api:ApiIentifier` key value to the App ID URI of the API you specified in the Web API registration. This App ID URI tells B2C which API your Web Application wants permissions to. 
+1. Change the `api:ApiIdentifier` key value to the App ID URI of the API you specified in the Web API registration. This App ID URI tells B2C which API your Web Application wants permissions to. 
     ```
     <!--<add key="api:ApiIdentifier" value="https://fabrikamb2c.onmicrosoft.com/api/" />—>
 
     <add key="api:ApiIdentifier" value="https://<your-tenant-name>.onmicrosoft.com/demoapi/" />
     ```
+    :memo: Make sure to include the trailing '/' at the end of your `ApiIdentifier` value. 
+
 1. Find the keys representing the scopes, e.g. `api:ReadScope` and replace the values with the corresponding scope names you created, e.g. `read`
 
 
