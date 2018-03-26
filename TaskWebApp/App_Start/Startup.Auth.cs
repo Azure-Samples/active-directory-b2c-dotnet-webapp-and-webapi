@@ -1,25 +1,22 @@
 ﻿using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.OpenIdConnect;
 using Microsoft.Owin.Security.Notifications;
-
+using Microsoft.Owin.Security.OpenIdConnect;
 using Owin;
-
 using System;
 using System.Configuration;
-using System.IdentityModel.Tokens;
+using System.IdentityModel.Claims;
 using System.Threading.Tasks;
 using System.Web;
-using System.IdentityModel.Claims;
-
 using TaskWebApp.Models;
 
 namespace TaskWebApp
 {
-	public partial class Startup
-	{
+    public partial class Startup
+    {
         // App config settings
         public static string ClientId = ConfigurationManager.AppSettings["ida:ClientId"];
         public static string ClientSecret = ConfigurationManager.AppSettings["ida:ClientSecret"];
@@ -39,7 +36,7 @@ namespace TaskWebApp
         public static string ApiIdentifier = ConfigurationManager.AppSettings["api:ApiIdentifier"];
         public static string ReadTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:ReadScope"];
         public static string WriteTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:WriteScope"];
-        public static string[] Scopes = new string[]{ ReadTasksScope, WriteTasksScope };
+        public static string[] Scopes = new string[] { ReadTasksScope, WriteTasksScope };
 
         // OWIN auth middleware constants
         public const string ObjectIdElement = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
@@ -97,8 +94,8 @@ namespace TaskWebApp
 
             if (!string.IsNullOrEmpty(policy) && !policy.Equals(DefaultPolicy))
             {
-                notification.ProtocolMessage.Scope = OpenIdConnectScopes.OpenId;
-                notification.ProtocolMessage.ResponseType = OpenIdConnectResponseTypes.IdToken;
+                notification.ProtocolMessage.Scope = OpenIdConnectScope.OpenId;
+                notification.ProtocolMessage.ResponseType = OpenIdConnectResponseType.IdToken;
                 notification.ProtocolMessage.IssuerAddress = notification.ProtocolMessage.IssuerAddress.ToLower().Replace(DefaultPolicy.ToLower(), policy.ToLower());
             }
 
