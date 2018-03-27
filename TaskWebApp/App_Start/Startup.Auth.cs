@@ -2,24 +2,21 @@
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security.OpenIdConnect;
 using Microsoft.Owin.Security.Notifications;
-
+using Microsoft.Owin.Security.OpenIdConnect;
 using Owin;
-
 using System;
 using System.Configuration;
+using System.IdentityModel.Claims;
 using System.IdentityModel.Tokens;
 using System.Threading.Tasks;
 using System.Web;
-using System.IdentityModel.Claims;
-
 using TaskWebApp.Models;
 
 namespace TaskWebApp
 {
-	public partial class Startup
-	{
+    public partial class Startup
+    {
         // App config settings
         public static string ClientId = ConfigurationManager.AppSettings["ida:ClientId"];
         public static string ClientSecret = ConfigurationManager.AppSettings["ida:ClientSecret"];
@@ -39,7 +36,7 @@ namespace TaskWebApp
         public static string ApiIdentifier = ConfigurationManager.AppSettings["api:ApiIdentifier"];
         public static string ReadTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:ReadScope"];
         public static string WriteTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:WriteScope"];
-        public static string[] Scopes = new string[]{ ReadTasksScope, WriteTasksScope };
+        public static string[] Scopes = new string[] { ReadTasksScope, WriteTasksScope };
 
         // OWIN auth middleware constants
         public const string ObjectIdElement = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
@@ -75,7 +72,7 @@ namespace TaskWebApp
                         AuthenticationFailed = OnAuthenticationFailed,
                     },
 
-                    // Specify the claims to validate
+                    // Specify the claim type that specifies the Name property.
                     TokenValidationParameters = new TokenValidationParameters
                     {
                         NameClaimType = "name"
