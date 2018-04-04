@@ -72,7 +72,7 @@ namespace TaskWebApp
                         AuthenticationFailed = OnAuthenticationFailed,
                     },
 
-                    // Specify the claims to validate
+                    // Specify the claim type that specifies the Name property.
                     TokenValidationParameters = new TokenValidationParameters
                     {
                         NameClaimType = "name"
