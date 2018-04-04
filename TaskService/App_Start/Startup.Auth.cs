@@ -1,9 +1,9 @@
-﻿using Microsoft.Owin.Security.Jwt;
+﻿using Microsoft.IdentityModel.Tokens;
+using Microsoft.Owin.Security.Jwt;
 using Microsoft.Owin.Security.OAuth;
 using Owin;
 using System;
 using System.Configuration;
-using System.IdentityModel.Tokens;
 using TaskService.App_Start;
 
 namespace TaskService

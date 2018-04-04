@@ -1,19 +1,20 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin.Security.Jwt;
-using System.IdentityModel.Tokens;
-using Microsoft.IdentityModel.Protocols;
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace TaskService.App_Start
 {
     // This class is necessary because the OAuthBearer Middleware does not leverage
     // the OpenID Connect metadata endpoint exposed by the STS by default.
-    public class OpenIdConnectCachingSecurityTokenProvider : IIssuerSecurityTokenProvider
+    public class OpenIdConnectCachingSecurityTokenProvider : IIssuerSecurityKeyProvider
     {
         public ConfigurationManager<OpenIdConnectConfiguration> _configManager;
         private string _issuer;
-        private IEnumerable<SecurityToken> _tokens;
+        private IEnumerable<SecurityKey> _keys;
         private readonly string _metadataEndpoint;
 
         private readonly ReaderWriterLockSlim _synclock = new ReaderWriterLockSlim();
@@ -21,7 +22,7 @@ namespace TaskService.App_Start
         public OpenIdConnectCachingSecurityTokenProvider(string metadataEndpoint)
         {
             _metadataEndpoint = metadataEndpoint;
-            _configManager = new ConfigurationManager<OpenIdConnectConfiguration>(metadataEndpoint);
+            _configManager = new ConfigurationManager<OpenIdConnectConfiguration>(metadataEndpoint, new OpenIdConnectConfigurationRetriever());
 
             RetrieveMetadata();
         }
@@ -50,12 +51,12 @@ namespace TaskService.App_Start
         }
 
         /// <summary>
-        /// Gets all known security tokens.
+        /// Gets all known security keys.
         /// </summary>
         /// <value>
-        /// All known security tokens.
+        /// All known security keys.
         /// </value>
-        public IEnumerable<SecurityToken> SecurityTokens
+        public IEnumerable<SecurityKey> SecurityKeys
         {
             get
             {
@@ -63,7 +64,7 @@ namespace TaskService.App_Start
                 _synclock.EnterReadLock();
                 try
                 {
-                    return _tokens;
+                    return _keys;
                 }
                 finally
                 {
@@ -79,7 +80,7 @@ namespace TaskService.App_Start
             {
                 OpenIdConnectConfiguration config = Task.Run(_configManager.GetConfigurationAsync).Result;
                 _issuer = config.Issuer;
-                _tokens = config.SigningTokens;
+                _keys = config.SigningKeys;
             }
             finally
             {
