@@ -27,7 +27,7 @@ There are two ways to run this sample:
 
 This sample demonstrates how you can sign in or sign up for an account at "Wingtip Toys" (the demo environment for this sample) using a ASP.NET MVC Web Application. 
 
-Once singed in, you can create and edit your todo items. 
+Once signed in, you can create and edit your todo items. 
 
 ### Step 1: Clone or download this repository
 
@@ -43,8 +43,8 @@ Open the `B2C-WebAPI-DotNet.sln` in Visual Studio.
 
 You will need to run both the `TaskWebApp` and `TaskService` projects at the same time. 
 
-1. In Solution Explorer, right-click on the solution and open the **Common Properties - Startup Project** window. 
-2. Select **Multiple startup projects**.
+1. In Solution Explorer, right-click on the solution and choose **Set StartUp Projects**. 
+2. In the **Common Properties - Startup Project** menu, select **Multiple startup projects**.
 3. Change the **Action** for both projects from **None** to **Start** as shown in the image below.
 
 ![Visual Studio using multiple startup projects](https://user-images.githubusercontent.com/11529908/30752751-1e8dd9f2-9f72-11e7-9755-c3f5b6b753a5.png)

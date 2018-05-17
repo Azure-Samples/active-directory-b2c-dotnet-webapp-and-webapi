@@ -146,7 +146,7 @@ namespace TaskWebApp
             }
             catch (Exception ex)
             {
-                //TODO: Handle
+                notification.Response.Redirect("/Home/Error?message=" + ex.Message);
                 throw;
             }
         }
