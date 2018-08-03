@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace TaskService.Controllers
         private static List<Models.Task> db = new List<Models.Task>();
         private static int taskId;
 
-        // OWIN auth middleware constants
+        // OWIN auth middleware constants -> These claims must match what's in your JWT, like for like. Click the 'claims' tab to check.
         public const string scopeElement = "http://schemas.microsoft.com/identity/claims/scope";
         public const string objectIdElement = "http://schemas.microsoft.com/identity/claims/objectidentifier";
 
@@ -31,7 +32,9 @@ namespace TaskService.Controllers
         public IEnumerable<Models.Task> Get()
         {
             HasRequiredScopes(ReadPermission);
-            string owner = ClaimsPrincipal.Current.FindFirst(objectIdElement).Value;
+
+            var owner = CheckClaimMatch(objectIdElement);
+
             IEnumerable<Models.Task> userTasks = db.Where(t => t.Owner == owner);
             return userTasks;
         }
@@ -46,7 +49,8 @@ namespace TaskService.Controllers
             if (String.IsNullOrEmpty(task.Text))
                 throw new WebException("Please provide a task description");
 
-            string owner = ClaimsPrincipal.Current.FindFirst(objectIdElement).Value;
+            var owner = CheckClaimMatch(objectIdElement);
+
             task.Id = taskId++;
             task.Owner = owner;
             task.Completed = false;
@@ -61,9 +65,29 @@ namespace TaskService.Controllers
         {
             HasRequiredScopes(WritePermission);
 
-            string owner = ClaimsPrincipal.Current.FindFirst(objectIdElement).Value;
+            var owner = CheckClaimMatch(objectIdElement);
+
             Models.Task task = db.Where(t => t.Owner.Equals(owner) && t.Id.Equals(id)).FirstOrDefault();
             db.Remove(task);
+        }
+
+        /*
+         * Check user claims match task details
+         */
+        private string CheckClaimMatch(string claim)
+        {
+            try
+            {
+                return ClaimsPrincipal.Current.FindFirst(claim).Value;
+            }
+            catch (Exception e)
+            {
+                throw new HttpResponseException(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ReasonPhrase = $"Unable to match claim '{claim}' against user claims; click the 'claims' tab to double-check."
+                });                
+            }
         }
 
         // Validate to ensure the necessary scopes are present.
