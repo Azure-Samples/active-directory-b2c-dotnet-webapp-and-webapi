@@ -56,7 +56,7 @@ namespace TaskWebApp.Controllers
                     case HttpStatusCode.Unauthorized:
                         return ErrorAction("Please sign in again. " + response.ReasonPhrase);
                     default:
-                        return ErrorAction("Error. Status code = " + response.StatusCode);
+                        return ErrorAction("Error. Status code = " + response.StatusCode + ": " + response.ReasonPhrase);
                 }
             }
             catch (Exception ex)
