@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -26,18 +27,26 @@ namespace TaskWebApp.Controllers
             {
                 // Retrieve the token with the specified scopes
                 var scope = new string[] { Startup.ReadTasksScope };
-                string signedInUserID = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
-                TokenCache userTokenCache = new MSALSessionCache(signedInUserID, this.HttpContext).GetMsalCacheInstance();
-                ConfidentialClientApplication cca = new ConfidentialClientApplication(Startup.ClientId, Startup.Authority, Startup.RedirectUri, new ClientCredential(Startup.ClientSecret), userTokenCache, null);
 
-                var user = cca.Users.FirstOrDefault();
-                if (user == null)
+                
+                string signedInUserID = ClaimsPrincipal.Current.FindFirst(Startup.ObjectIdElement)?.Value;
+
+
+                ConfidentialClientApplication cca = Startup.GetConfidential();
+                TokenCacheHelper.EnablePersistence(cca.UserTokenCache);
+
+                var accounts = cca.GetAccountsAsync().Result;
+                var account = Startup.GetAccountByPolicy(accounts, Startup.DefaultPolicy)
+                                        ?? accounts.FirstOrDefault();
+
+                if (account == null)
                 {
                     throw new Exception("The User is NULL.  Please clear your cookies and try again.  Specifically delete cookies for 'login.microsoftonline.com'.  See this GitHub issue for more details: https://github.com/Azure-Samples/active-directory-b2c-dotnet-webapp-and-webapi/issues/9");
                 }
 
-                AuthenticationResult result = await cca.AcquireTokenSilentAsync(scope, user, Startup.Authority, false);
-
+                var tokenBuilder = cca.AcquireTokenSilent(scope, account);
+                AuthenticationResult result = tokenBuilder.ExecuteAsync().Result;
+                
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, apiEndpoint);
 
@@ -75,12 +84,17 @@ namespace TaskWebApp.Controllers
                 string accessToken = null;
                 try
                 {
-                    var scope = new string[] { Startup.WriteTasksScope };
-                    string signedInUserID = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
-                    TokenCache userTokenCache = new MSALSessionCache(signedInUserID, this.HttpContext).GetMsalCacheInstance();
-                    ConfidentialClientApplication cca = new ConfidentialClientApplication(Startup.ClientId, Startup.Authority, Startup.RedirectUri, new ClientCredential(Startup.ClientSecret), userTokenCache, null);
+                    var scope = new string[] { TaskWebApp.Startup.WriteTasksScope };
+                    string signedInUserID = ClaimsPrincipal.Current.FindFirst(Startup.ObjectIdElement)?.Value;
 
-                    AuthenticationResult result = await cca.AcquireTokenSilentAsync(scope, cca.Users.FirstOrDefault(), Startup.Authority, false);
+                    ConfidentialClientApplication cca = TaskWebApp.Startup.GetConfidential();
+                    TokenCacheHelper.EnablePersistence(cca.UserTokenCache);
+                    var accounts = cca.GetAccountsAsync().Result;
+                    var account = Startup.GetAccountByPolicy(accounts, Startup.DefaultPolicy)
+                                            ?? accounts.FirstOrDefault();
+
+                    var tokenBuilder = cca.AcquireTokenSilent(scope, account);
+                    AuthenticationResult result = tokenBuilder.ExecuteAsync().Result;
                     accessToken = result.AccessToken;
                 }
                 catch (Exception)
@@ -126,12 +140,15 @@ namespace TaskWebApp.Controllers
             {
                 // Retrieve the token with the specified scopes
                 var scope = new string[] { Startup.WriteTasksScope };
-                string signedInUserID = ClaimsPrincipal.Current.FindFirst(ClaimTypes.NameIdentifier).Value;
-                TokenCache userTokenCache = new MSALSessionCache(signedInUserID, this.HttpContext).GetMsalCacheInstance();
-                ConfidentialClientApplication cca = new ConfidentialClientApplication(Startup.ClientId, Startup.Authority, Startup.RedirectUri, new ClientCredential(Startup.ClientSecret), userTokenCache, null);
+                string signedInUserID = ClaimsPrincipal.Current.FindFirst(Startup.ObjectIdElement)?.Value;
+                ConfidentialClientApplication cca = Startup.GetConfidential();
+                TokenCacheHelper.EnablePersistence(cca.UserTokenCache);
+                var accounts = cca.GetAccountsAsync().Result;
+                var account = Startup.GetAccountByPolicy(accounts, Startup.DefaultPolicy) 
+                                        ?? accounts.FirstOrDefault();
 
-                AuthenticationResult result = await cca.AcquireTokenSilentAsync(scope, cca.Users.FirstOrDefault(), Startup.Authority, false);
-
+                var tokenBuilder = cca.AcquireTokenSilent(scope, account);
+                AuthenticationResult result = tokenBuilder.ExecuteAsync().Result;
 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, apiEndpoint + id);

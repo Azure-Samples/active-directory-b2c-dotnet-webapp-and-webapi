@@ -1,5 +1,4 @@
-﻿using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+﻿using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
@@ -8,11 +7,15 @@ using Microsoft.Owin.Security.OpenIdConnect;
 using Owin;
 using System;
 using System.Configuration;
-using System.IdentityModel.Claims;
 using System.Threading.Tasks;
-using System.Web;
+using System.Web.Http;
 using TaskWebApp.Models;
 using System.Net;
+using System.Net.Http;
+using System.Collections.Generic;
+using System.Web;
+using System.Diagnostics;
+using Microsoft.Identity.Client;
 
 namespace TaskWebApp
 {
@@ -43,13 +46,15 @@ namespace TaskWebApp
         public const string ObjectIdElement = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
 
         // Authorities
-        public static string Authority = String.Format(AadInstance, Tenant, DefaultPolicy);
+        public static string B2CAuthority = string.Format(AadInstance, Tenant, DefaultPolicy);
+        static string WellKnownMetadata = $"{AadInstance}/v2.0/.well-known/openid-configuration";
 
         /*
         * Configure the OWIN middleware 
         */
         public void ConfigureAuth(IAppBuilder app)
         {
+
             // Required for Azure webapps, as by default they force TLS 1.2 and this project attempts 1.0
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             
@@ -61,7 +66,7 @@ namespace TaskWebApp
                 new OpenIdConnectAuthenticationOptions
                 {
                     // Generate the metadata address using the tenant and policy information
-                    MetadataAddress = String.Format(AadInstance, Tenant, DefaultPolicy),
+                    MetadataAddress = String.Format(WellKnownMetadata, Tenant, DefaultPolicy),
 
                     // These are standard OpenID Connect parameters, with values pulled from web.config
                     ClientId = ClientId,
@@ -74,12 +79,14 @@ namespace TaskWebApp
                         RedirectToIdentityProvider = OnRedirectToIdentityProvider,
                         AuthorizationCodeReceived = OnAuthorizationCodeReceived,
                         AuthenticationFailed = OnAuthenticationFailed,
+                        
                     },
 
                     // Specify the claim type that specifies the Name property.
                     TokenValidationParameters = new TokenValidationParameters
                     {
-                        NameClaimType = "name"
+                        NameClaimType = "name",
+                        ValidateIssuer = false
                     },
 
                     // Specify the scope by appending all of the scopes requested into one string (separated by a blank space)
@@ -88,6 +95,15 @@ namespace TaskWebApp
             );
         }
 
+        internal static ConfidentialClientApplication GetConfidential()
+        {
+            return (ConfidentialClientApplication)ConfidentialClientApplicationBuilder.
+                                Create(ClientId).
+                                WithB2CAuthority(B2CAuthority).
+                                WithClientSecret(ClientSecret).
+                                WithRedirectUri(RedirectUri).Build();
+
+        }
         /*
          *  On each call to Azure AD B2C, check if a policy (e.g. the profile edit or password reset policy) has been specified in the OWIN context.
          *  If so, use that policy when making the call. Also, don't request a code (since it won't be needed).
@@ -141,18 +157,38 @@ namespace TaskWebApp
             // Extract the code from the response notification
             var code = notification.Code;
 
-            string signedInUserID = notification.AuthenticationTicket.Identity.FindFirst(ClaimTypes.NameIdentifier).Value;
-            TokenCache userTokenCache = new MSALSessionCache(signedInUserID, notification.OwinContext.Environment["System.Web.HttpContextBase"] as HttpContextBase).GetMsalCacheInstance();
-            ConfidentialClientApplication cca = new ConfidentialClientApplication(ClientId, Authority, RedirectUri, new ClientCredential(ClientSecret), userTokenCache, null);
+            string signedInUserID = notification.JwtSecurityToken.Subject; //notification.AuthenticationTicket.Identity.FindFirst(Startup.ClaimsSubject).Value;
+            ConfidentialClientApplication cca = GetConfidential();
+            var httpContextBase = notification.OwinContext.Environment["System.Web.HttpContextBase"] as HttpContextBase;
+            HttpContext httpContext =  httpContextBase.ApplicationInstance.Context;
+            TokenCacheHelper.EnablePersistence(cca.UserTokenCache);
+            
             try
             {
-                AuthenticationResult result = await cca.AcquireTokenByAuthorizationCodeAsync(code, Scopes);
+                AuthenticationResult result = await cca.AcquireTokenByAuthorizationCode(new List<string>(Scopes), code)
+                    .ExecuteAsync();
             }
             catch (Exception ex)
             {
-                //TODO: Handle
-                throw;
+                throw new HttpResponseException(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    ReasonPhrase = $"Unable to get authorization code {ex.Message}."
+                });
+
             }
+        }
+
+        internal static IAccount GetAccountByPolicy(IEnumerable<IAccount> accounts, string policy)
+        {
+            foreach (var account in accounts)
+            {
+                string userIdentifier = account.HomeAccountId.ObjectId.Split('.')[0];
+                Debug.WriteLine($"{account.HomeAccountId}   {userIdentifier}   {account.Username}");
+
+                if (userIdentifier.EndsWith(policy.ToLower())) return account;
+            }
+            return null;
         }
     }
 }
