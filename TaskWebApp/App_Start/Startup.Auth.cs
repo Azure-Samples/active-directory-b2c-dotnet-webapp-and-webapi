@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+﻿using Microsoft.Identity.Client;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
@@ -6,189 +7,134 @@ using Microsoft.Owin.Security.Notifications;
 using Microsoft.Owin.Security.OpenIdConnect;
 using Owin;
 using System;
-using System.Configuration;
-using System.Threading.Tasks;
-using System.Web.Http;
-using TaskWebApp.Models;
 using System.Net;
 using System.Net.Http;
-using System.Collections.Generic;
-using System.Web;
-using System.Diagnostics;
-using Microsoft.Identity.Client;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Web.Http;
+using TaskWebApp.Utils;
 
 namespace TaskWebApp
 {
-    public partial class Startup
-    {
-        // App config settings
-        public static string ClientId = ConfigurationManager.AppSettings["ida:ClientId"];
-        public static string ClientSecret = ConfigurationManager.AppSettings["ida:ClientSecret"];
-        public static string AadInstance = ConfigurationManager.AppSettings["ida:AadInstance"];
-        public static string Tenant = ConfigurationManager.AppSettings["ida:Tenant"];
-        public static string RedirectUri = ConfigurationManager.AppSettings["ida:RedirectUri"];
-        public static string ServiceUrl = ConfigurationManager.AppSettings["api:TaskServiceUrl"];
-
-        // B2C policy identifiers
-        public static string SignUpSignInPolicyId = ConfigurationManager.AppSettings["ida:SignUpSignInPolicyId"];
-        public static string EditProfilePolicyId = ConfigurationManager.AppSettings["ida:EditProfilePolicyId"];
-        public static string ResetPasswordPolicyId = ConfigurationManager.AppSettings["ida:ResetPasswordPolicyId"];
-
-        public static string DefaultPolicy = SignUpSignInPolicyId;
-
-        // API Scopes
-        public static string ApiIdentifier = ConfigurationManager.AppSettings["api:ApiIdentifier"];
-        public static string ReadTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:ReadScope"];
-        public static string WriteTasksScope = ApiIdentifier + ConfigurationManager.AppSettings["api:WriteScope"];
-        public static string[] Scopes = new string[] { ReadTasksScope, WriteTasksScope };
-
-        // OWIN auth middleware constants
-        public const string ObjectIdElement = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
-
-        // Authorities
-        public static string B2CAuthority = string.Format(AadInstance, Tenant, DefaultPolicy);
-        static string WellKnownMetadata = $"{AadInstance}/v2.0/.well-known/openid-configuration";
-
-        /*
-        * Configure the OWIN middleware 
+	public partial class Startup
+	{
+		/*
+        * Configure the OWIN middleware
         */
-        public void ConfigureAuth(IAppBuilder app)
-        {
 
-            // Required for Azure webapps, as by default they force TLS 1.2 and this project attempts 1.0
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            
-            app.SetDefaultSignInAsAuthenticationType(CookieAuthenticationDefaults.AuthenticationType);
+		public void ConfigureAuth(IAppBuilder app)
+		{
+			// Required for Azure webapps, as by default they force TLS 1.2 and this project attempts 1.0
+			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
-            app.UseCookieAuthentication(new CookieAuthenticationOptions());
+			app.SetDefaultSignInAsAuthenticationType(CookieAuthenticationDefaults.AuthenticationType);
 
-            app.UseOpenIdConnectAuthentication(
-                new OpenIdConnectAuthenticationOptions
-                {
-                    // Generate the metadata address using the tenant and policy information
-                    MetadataAddress = String.Format(WellKnownMetadata, Tenant, DefaultPolicy),
+			app.UseCookieAuthentication(new CookieAuthenticationOptions());
 
-                    // These are standard OpenID Connect parameters, with values pulled from web.config
-                    ClientId = ClientId,
-                    RedirectUri = RedirectUri,
-                    PostLogoutRedirectUri = RedirectUri,
+			app.UseOpenIdConnectAuthentication(
+				new OpenIdConnectAuthenticationOptions
+				{
+					// Generate the metadata address using the tenant and policy information
+					MetadataAddress = String.Format(Globals.WellKnownMetadata, Globals.Tenant, Globals.DefaultPolicy),
 
-                    // Specify the callbacks for each type of notifications
-                    Notifications = new OpenIdConnectAuthenticationNotifications
-                    {
-                        RedirectToIdentityProvider = OnRedirectToIdentityProvider,
-                        AuthorizationCodeReceived = OnAuthorizationCodeReceived,
-                        AuthenticationFailed = OnAuthenticationFailed,
-                        
-                    },
+					// These are standard OpenID Connect parameters, with values pulled from web.config
+					ClientId = Globals.ClientId,
+					RedirectUri = Globals.RedirectUri,
+					PostLogoutRedirectUri = Globals.RedirectUri,
 
-                    // Specify the claim type that specifies the Name property.
-                    TokenValidationParameters = new TokenValidationParameters
-                    {
-                        NameClaimType = "name",
-                        ValidateIssuer = false
-                    },
+					// Specify the callbacks for each type of notifications
+					Notifications = new OpenIdConnectAuthenticationNotifications
+					{
+						RedirectToIdentityProvider = OnRedirectToIdentityProvider,
+						AuthorizationCodeReceived = OnAuthorizationCodeReceived,
+						AuthenticationFailed = OnAuthenticationFailed,
+					},
 
-                    // Specify the scope by appending all of the scopes requested into one string (separated by a blank space)
-                    Scope = $"openid profile offline_access {ReadTasksScope} {WriteTasksScope}"
-                }
-            );
-        }
+					// Specify the claim type that specifies the Name property.
+					TokenValidationParameters = new TokenValidationParameters
+					{
+						NameClaimType = "name",
+						ValidateIssuer = false
+					},
 
-        internal static ConfidentialClientApplication GetConfidential()
-        {
-            return (ConfidentialClientApplication)ConfidentialClientApplicationBuilder.
-                                Create(ClientId).
-                                WithB2CAuthority(B2CAuthority).
-                                WithClientSecret(ClientSecret).
-                                WithRedirectUri(RedirectUri).Build();
+					// Specify the scope by appending all of the scopes requested into one string (separated by a blank space)
+					Scope = $"openid profile offline_access {Globals.ReadTasksScope} {Globals.WriteTasksScope}"
+				}
+			);
+		}
 
-        }
-        /*
+		/*
          *  On each call to Azure AD B2C, check if a policy (e.g. the profile edit or password reset policy) has been specified in the OWIN context.
          *  If so, use that policy when making the call. Also, don't request a code (since it won't be needed).
          */
-        private Task OnRedirectToIdentityProvider(RedirectToIdentityProviderNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
-        {
-            var policy = notification.OwinContext.Get<string>("Policy");
+		private Task OnRedirectToIdentityProvider(RedirectToIdentityProviderNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
+		{
+			var policy = notification.OwinContext.Get<string>("Policy");
 
-            if (!string.IsNullOrEmpty(policy) && !policy.Equals(DefaultPolicy))
-            {
-                notification.ProtocolMessage.Scope = OpenIdConnectScope.OpenId;
-                notification.ProtocolMessage.ResponseType = OpenIdConnectResponseType.IdToken;
-                notification.ProtocolMessage.IssuerAddress = notification.ProtocolMessage.IssuerAddress.ToLower().Replace(DefaultPolicy.ToLower(), policy.ToLower());
-            }
+			if (!string.IsNullOrEmpty(policy) && !policy.Equals(Globals.DefaultPolicy))
+			{
+				notification.ProtocolMessage.Scope = OpenIdConnectScope.OpenId;
+				notification.ProtocolMessage.ResponseType = OpenIdConnectResponseType.IdToken;
+				notification.ProtocolMessage.IssuerAddress = notification.ProtocolMessage.IssuerAddress.ToLower().Replace(Globals.DefaultPolicy.ToLower(), policy.ToLower());
+			}
 
-            return Task.FromResult(0);
-        }
+			return Task.FromResult(0);
+		}
 
-        /*
+		/*
          * Catch any failures received by the authentication middleware and handle appropriately
          */
-        private Task OnAuthenticationFailed(AuthenticationFailedNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
-        {
-            notification.HandleResponse();
+		private Task OnAuthenticationFailed(AuthenticationFailedNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
+		{
+			notification.HandleResponse();
 
-            // Handle the error code that Azure AD B2C throws when trying to reset a password from the login page 
-            // because password reset is not supported by a "sign-up or sign-in policy"
-            if (notification.ProtocolMessage.ErrorDescription != null && notification.ProtocolMessage.ErrorDescription.Contains("AADB2C90118"))
-            {
-                // If the user clicked the reset password link, redirect to the reset password route
-                notification.Response.Redirect("/Account/ResetPassword");
-            }
-            else if (notification.Exception.Message == "access_denied")
-            {
-                notification.Response.Redirect("/");
-            }
-            else
-            {
-                notification.Response.Redirect("/Home/Error?message=" + notification.Exception.Message);
-            }
+			// Handle the error code that Azure AD B2C throws when trying to reset a password from the login page
+			// because password reset is not supported by a "sign-up or sign-in policy"
+			if (notification.ProtocolMessage.ErrorDescription != null && notification.ProtocolMessage.ErrorDescription.Contains("AADB2C90118"))
+			{
+				// If the user clicked the reset password link, redirect to the reset password route
+				notification.Response.Redirect("/Account/ResetPassword");
+			}
+			else if (notification.Exception.Message == "access_denied")
+			{
+				notification.Response.Redirect("/");
+			}
+			else
+			{
+				notification.Response.Redirect("/Home/Error?message=" + notification.Exception.Message);
+			}
 
-            return Task.FromResult(0);
-        }
+			return Task.FromResult(0);
+		}
 
-
-        /*
-         * Callback function when an authorization code is received 
+		/*
+         * Callback function when an authorization code is received
          */
-        private async Task OnAuthorizationCodeReceived(AuthorizationCodeReceivedNotification notification)
-        {
-            // Extract the code from the response notification
-            var code = notification.Code;
+		private async Task OnAuthorizationCodeReceived(AuthorizationCodeReceivedNotification notification)
+		{
+			try
+			{
+				/*
+				 The `MSALPerUserMemoryTokenCache` is created and hooked in the `UserTokenCache` used by `IConfidentialClientApplication`.
+				 At this point, if you inspect `ClaimsPrinciple.Current` you will notice that the Identity is still unauthenticated and it has no claims,
+				 but `MSALPerUserMemoryTokenCache` needs the claims to work properly. Because of this sync problem, we are using the constructor that
+				 receives `ClaimsPrincipal` as argument and we are getting the claims from the object `AuthorizationCodeReceivedNotification context`.
+				 This object contains the property `AuthenticationTicket.Identity`, which is a `ClaimsIdentity`, created from the token received from
+				 Azure AD and has a full set of claims.
+				 */
+				IConfidentialClientApplication confidentialClient = MsalAppBuilder.BuildConfidentialClientApplication(new ClaimsPrincipal(notification.AuthenticationTicket.Identity));
 
-            string signedInUserID = notification.JwtSecurityToken.Subject; //notification.AuthenticationTicket.Identity.FindFirst(Startup.ClaimsSubject).Value;
-            ConfidentialClientApplication cca = GetConfidential();
-            var httpContextBase = notification.OwinContext.Environment["System.Web.HttpContextBase"] as HttpContextBase;
-            HttpContext httpContext =  httpContextBase.ApplicationInstance.Context;
-            TokenCacheHelper.EnablePersistence(cca.UserTokenCache);
-            
-            try
-            {
-                AuthenticationResult result = await cca.AcquireTokenByAuthorizationCode(new List<string>(Scopes), code)
-                    .ExecuteAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new HttpResponseException(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.BadRequest,
-                    ReasonPhrase = $"Unable to get authorization code {ex.Message}."
-                });
-
-            }
-        }
-
-        internal static IAccount GetAccountByPolicy(IEnumerable<IAccount> accounts, string policy)
-        {
-            foreach (var account in accounts)
-            {
-                string userIdentifier = account.HomeAccountId.ObjectId.Split('.')[0];
-                Debug.WriteLine($"{account.HomeAccountId}   {userIdentifier}   {account.Username}");
-
-                if (userIdentifier.EndsWith(policy.ToLower())) return account;
-            }
-            return null;
-        }
-    }
+				// Upon successful sign in, get & cache a token using MSAL
+				AuthenticationResult result = await confidentialClient.AcquireTokenByAuthorizationCode(Globals.Scopes, notification.Code).ExecuteAsync();
+			}
+			catch (Exception ex)
+			{
+				throw new HttpResponseException(new HttpResponseMessage
+				{
+					StatusCode = HttpStatusCode.BadRequest,
+					ReasonPhrase = $"Unable to get authorization code {ex.Message}."
+				});
+			}
+		}
+	}
 }

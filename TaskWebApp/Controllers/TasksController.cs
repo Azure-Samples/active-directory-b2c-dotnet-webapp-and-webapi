@@ -1,24 +1,21 @@
 ﻿using Microsoft.Identity.Client;
 using Newtonsoft.Json.Linq;
-
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using TaskWebApp.Models;
+using TaskWebApp.Utils;
 
 namespace TaskWebApp.Controllers
 {
-    [Authorize]
+	[Authorize]
     public class TasksController : Controller
     {
-        private String apiEndpoint = Startup.ServiceUrl + "/api/tasks/";
+        private String apiEndpoint = Globals.ServiceUrl + "/api/tasks/";
 
         // GET: Makes a call to the API and retrieves the list of tasks
         public async Task<ActionResult> Index()
@@ -26,26 +23,11 @@ namespace TaskWebApp.Controllers
             try
             {
                 // Retrieve the token with the specified scopes
-                var scope = new string[] { Startup.ReadTasksScope };
-
+                var scope = new string[] { Globals.ReadTasksScope };
                 
-                string signedInUserID = ClaimsPrincipal.Current.FindFirst(Startup.ObjectIdElement)?.Value;
-
-
-                ConfidentialClientApplication cca = Startup.GetConfidential();
-                TokenCacheHelper.EnablePersistence(cca.UserTokenCache);
-
-                var accounts = cca.GetAccountsAsync().Result;
-                var account = Startup.GetAccountByPolicy(accounts, Startup.DefaultPolicy)
-                                        ?? accounts.FirstOrDefault();
-
-                if (account == null)
-                {
-                    throw new Exception("The User is NULL.  Please clear your cookies and try again.  Specifically delete cookies for 'login.microsoftonline.com'.  See this GitHub issue for more details: https://github.com/Azure-Samples/active-directory-b2c-dotnet-webapp-and-webapi/issues/9");
-                }
-
-                var tokenBuilder = cca.AcquireTokenSilent(scope, account);
-                AuthenticationResult result = tokenBuilder.ExecuteAsync().Result;
+                IConfidentialClientApplication cca = MsalAppBuilder.BuildConfidentialClientApplication();
+                var accounts = await cca.GetAccountsAsync();
+				AuthenticationResult result = await cca.AcquireTokenSilent(scope, accounts.FirstOrDefault()).ExecuteAsync();
                 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, apiEndpoint);
@@ -68,7 +50,17 @@ namespace TaskWebApp.Controllers
                         return ErrorAction("Error. Status code = " + response.StatusCode + ": " + response.ReasonPhrase);
                 }
             }
-            catch (Exception ex)
+			catch (MsalUiRequiredException ex)
+			{
+				/*
+                    If the tokens have expired or become invalid for any reason, ask the user to sign in again.
+                    Another cause of this exception is when you restart the app using InMemory cache.
+                    It will get wiped out while the user will be authenticated still because of their cookies, requiring the TokenCache to be initialized again
+                    through the sign in flow.
+                */
+				return new RedirectResult("/Account/SignUpSignIn?redirectUrl=/Tasks");
+			}
+			catch (Exception ex)
             {
                 return ErrorAction("Error reading to do list: " + ex.Message);
             }
@@ -82,27 +74,14 @@ namespace TaskWebApp.Controllers
             {
                 // Retrieve the token with the specified scopes
                 string accessToken = null;
-                try
-                {
-                    var scope = new string[] { TaskWebApp.Startup.WriteTasksScope };
-                    string signedInUserID = ClaimsPrincipal.Current.FindFirst(Startup.ObjectIdElement)?.Value;
+                var scope = new string[] { Globals.WriteTasksScope };
 
-                    ConfidentialClientApplication cca = TaskWebApp.Startup.GetConfidential();
-                    TokenCacheHelper.EnablePersistence(cca.UserTokenCache);
-                    var accounts = cca.GetAccountsAsync().Result;
-                    var account = Startup.GetAccountByPolicy(accounts, Startup.DefaultPolicy)
-                                            ?? accounts.FirstOrDefault();
-
-                    var tokenBuilder = cca.AcquireTokenSilent(scope, account);
-                    AuthenticationResult result = tokenBuilder.ExecuteAsync().Result;
-                    accessToken = result.AccessToken;
-                }
-                catch (Exception)
-                {
-                    //Require interactive signin
-                }
-
-                // Set the content
+				IConfidentialClientApplication cca = MsalAppBuilder.BuildConfidentialClientApplication();
+				var accounts = await cca.GetAccountsAsync();
+				AuthenticationResult result = await cca.AcquireTokenSilent(scope, accounts.FirstOrDefault()).ExecuteAsync();
+				accessToken = result.AccessToken;
+                
+				// Set the content
                 var httpContent = new[] {new KeyValuePair<string, string>("Text", description)};
 
                 // Create the request
@@ -126,7 +105,17 @@ namespace TaskWebApp.Controllers
                         return ErrorAction("Error. Status code = " + response.StatusCode);
                 }
             }
-            catch (Exception ex)
+			catch (MsalUiRequiredException ex)
+			{
+				/*
+                    If the tokens have expired or become invalid for any reason, ask the user to sign in again.
+                    Another cause of this exception is when you restart the app using InMemory cache.
+                    It will get wiped out while the user will be authenticated still because of their cookies, requiring the TokenCache to be initialized again
+                    through the sign in flow.
+                */
+				return new RedirectResult("/Account/SignUpSignIn?redirectUrl=/Tasks");
+			}
+			catch (Exception ex)
             {
                 return ErrorAction("Error writing to list: " + ex.Message);
             }
@@ -139,18 +128,13 @@ namespace TaskWebApp.Controllers
             try
             {
                 // Retrieve the token with the specified scopes
-                var scope = new string[] { Startup.WriteTasksScope };
-                string signedInUserID = ClaimsPrincipal.Current.FindFirst(Startup.ObjectIdElement)?.Value;
-                ConfidentialClientApplication cca = Startup.GetConfidential();
-                TokenCacheHelper.EnablePersistence(cca.UserTokenCache);
-                var accounts = cca.GetAccountsAsync().Result;
-                var account = Startup.GetAccountByPolicy(accounts, Startup.DefaultPolicy) 
-                                        ?? accounts.FirstOrDefault();
+                var scope = new string[] { Globals.WriteTasksScope };
 
-                var tokenBuilder = cca.AcquireTokenSilent(scope, account);
-                AuthenticationResult result = tokenBuilder.ExecuteAsync().Result;
+				IConfidentialClientApplication cca = MsalAppBuilder.BuildConfidentialClientApplication();
+				var accounts = await cca.GetAccountsAsync();
+				AuthenticationResult result = await cca.AcquireTokenSilent(scope, accounts.FirstOrDefault()).ExecuteAsync();
 
-                HttpClient client = new HttpClient();
+				HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, apiEndpoint + id);
 
                 // Add token to the Authorization header and send the request
@@ -169,7 +153,17 @@ namespace TaskWebApp.Controllers
                         return ErrorAction("Error. Status code = " + response.StatusCode);
                 }
             }
-            catch (Exception ex)
+			catch (MsalUiRequiredException ex)
+			{
+				/*
+                    If the tokens have expired or become invalid for any reason, ask the user to sign in again.
+                    Another cause of this exception is when you restart the app using InMemory cache.
+                    It will get wiped out while the user will be authenticated still because of their cookies, requiring the TokenCache to be initialized again
+                    through the sign in flow.
+                */
+				return new RedirectResult("/Account/SignUpSignIn?redirectUrl=/Tasks");
+			}
+			catch (Exception ex)
             {
                 return ErrorAction("Error deleting from list: " + ex.Message);
             }

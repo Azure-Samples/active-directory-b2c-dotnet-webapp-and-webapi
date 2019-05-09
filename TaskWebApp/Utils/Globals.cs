@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Web;
+﻿using System.Configuration;
 
 namespace TaskWebApp.Utils
 {
-    public static class Globals
+	public static class Globals
     {
         // App config settings
         public static string ClientId = ConfigurationManager.AppSettings["ida:ClientId"];
         public static string ClientSecret = ConfigurationManager.AppSettings["ida:ClientSecret"];
         public static string AadInstance = ConfigurationManager.AppSettings["ida:AadInstance"];
         public static string Tenant = ConfigurationManager.AppSettings["ida:Tenant"];
-        public static string RedirectUri = ConfigurationManager.AppSettings["ida:RedirectUri"];
+		public static string TenantId = ConfigurationManager.AppSettings["ida:TenantId"];
+		public static string RedirectUri = ConfigurationManager.AppSettings["ida:RedirectUri"];
         public static string ServiceUrl = ConfigurationManager.AppSettings["api:TaskServiceUrl"];
 
         // B2C policy identifiers

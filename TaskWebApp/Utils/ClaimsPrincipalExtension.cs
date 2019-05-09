@@ -1,4 +1,28 @@
-﻿using Microsoft.Identity.Client;
+﻿/************************************************************************************************
+The MIT License (MIT)
+
+Copyright (c) 2015 Microsoft Corporation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+***********************************************************************************************/
+
+using Microsoft.Identity.Client;
 using System.Security.Claims;
 
 namespace TaskWebApp.Utils
@@ -10,10 +34,10 @@ namespace TaskWebApp.Utils
         /// </summary>
         /// <param name="claimsPrincipal">Claims principal</param>
         /// <returns>A string corresponding to an account identifier as defined in <see cref="Microsoft.Identity.Client.AccountId.Identifier"/></returns>
-        public static string GetMsalAccountId(this ClaimsPrincipal claimsPrincipal)
+        public static string GetB2CMsalAccountId(this ClaimsPrincipal claimsPrincipal)
         {
 			string userObjectId = GetObjectId(claimsPrincipal);
-			string tenantId = "775527ff-9a37-4307-8b3d-cc311f58d925"; //TODO: FIX THIS
+			string tenantId = Globals.TenantId;
 
 			if (!string.IsNullOrWhiteSpace(userObjectId) && !string.IsNullOrWhiteSpace(tenantId))
 			{

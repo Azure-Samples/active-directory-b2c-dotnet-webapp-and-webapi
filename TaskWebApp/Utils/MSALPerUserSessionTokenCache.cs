@@ -202,7 +202,7 @@ namespace TaskWebApp.Utils
 		{
 			if (this.SignedInUser != null)
 			{
-				return this.SignedInUser.GetMsalAccountId();
+				return this.SignedInUser.GetB2CMsalAccountId();
 			}
 			return null;
 		}

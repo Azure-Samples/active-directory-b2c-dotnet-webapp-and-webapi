@@ -70,6 +70,8 @@ This sample uses three types of policies: a unified sign-up/sign-in policy, a pr
 
 If you already have existing policies in your Azure AD B2C tenant, feel free to re-use those policies in this sample.
 
+Make sure that all the three policies return **User's Object ID** and **Display Name** on **Application Claims**. To do that, on Azure Portal, go to your B2C Directory then click **User flows (policies)** on the left menu and select your policy. Then click on **Application claims** and make sure that **User's Object ID** and **Display Name** is checked.
+
 ### Step 3: Register your ASP.NET Web API with Azure AD B2C
 
 Follow the instructions at [register a Web API with Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-app-registration#register-a-web-api) to register the ASP.NET Web API sample with your tenant. Registering your Web API allows you to define the scopes that your ASP.NET Web Application will request access tokens for. 
@@ -109,6 +111,7 @@ In this section, you will change the code in both projects to use your tenant.
 
 1. Open the `Web.config` file for the `TaskWebApp` project.
 1. Find the key `ida:Tenant` and replace the value with your `<your-tenant-name>.onmicrosoft.com`.
+1. Find the key `ida:TenantId` and replace the value with your Directory ID.
 1. Find the key `ida:ClientId` and replace the value with the Application ID from your web application `My Test ASP.NET Web Application` registration in the Azure portal.
 1. Find the key `ida:ClientSecret` and replace the value with the Client secret from your web application in in the Azure portal.
 1. Find the keys representing the policies, e.g. `ida:SignUpSignInPolicyId` and replace the values with the corresponding policy names you created, e.g. `b2c_1_SiUpIn`
