@@ -30,7 +30,7 @@ namespace TaskWebApp.Utils
     public static class ClaimsPrincipalExtension
     {
         /// <summary>
-        /// Get the Account identifier for an MSAL.NET account from a ClaimsPrincipal
+        /// Get the B2C Account identifier for an MSAL.NET account from a ClaimsPrincipal
         /// </summary>
         /// <param name="claimsPrincipal">Claims principal</param>
         /// <returns>A string corresponding to an account identifier as defined in <see cref="Microsoft.Identity.Client.AccountId.Identifier"/></returns>
