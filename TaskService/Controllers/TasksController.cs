@@ -85,7 +85,7 @@ namespace TaskService.Controllers
                 throw new HttpResponseException(new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.BadRequest,
-                    ReasonPhrase = $"Unable to match claim '{claim}' against user claims; click the 'claims' tab to double-check."
+                    ReasonPhrase = $"Unable to match claim '{claim}' against user claims; click the 'claims' tab to double-check. {e.Message}"
                 });                
             }
         }
