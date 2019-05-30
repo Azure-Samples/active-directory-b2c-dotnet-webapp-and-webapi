@@ -178,7 +178,11 @@ namespace TaskWebApp.Utils
 		/// <param name="args">Contains parameters used by the MSAL call accessing the cache.</param>
 		private void UserTokenCacheAfterAccessNotification(TokenCacheNotificationArgs args)
 		{
-			this.LoadUserTokenCacheFromSession();
+			// if the access operation resulted in a cache update
+			if (args.HasStateChanged)
+			{
+				this.PersistUserTokenCache();
+			}
 		}
 
 		/// <summary>
@@ -187,11 +191,7 @@ namespace TaskWebApp.Utils
 		/// <param name="args">Contains parameters used by the MSAL call accessing the cache.</param>
 		private void UserTokenCacheBeforeAccessNotification(TokenCacheNotificationArgs args)
 		{
-			// if the access operation resulted in a cache update
-			if (args.HasStateChanged)
-			{
-				this.PersistUserTokenCache();
-			}
+			this.LoadUserTokenCacheFromSession();
 		}
 
 		/// <summary>
