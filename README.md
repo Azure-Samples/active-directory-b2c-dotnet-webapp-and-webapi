@@ -1,7 +1,12 @@
 ---
-services: active-directory-b2c
-platforms: dotnet
-author: dstrockis
+page_type: sample
+description: "The sample covers calling an OpenID Connect identity provider (Azure AD B2C) and acquiring a token from Azure AD B2C using MSAL."
+languages:
+  - csharp
+products:
+  - dotnet
+  - azure
+  - azure-active-directory
 ---
 
 # Azure AD B2C: Call an ASP.NET Web API from an ASP.NET Web App
