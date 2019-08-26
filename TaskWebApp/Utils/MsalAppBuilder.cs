@@ -76,8 +76,8 @@ namespace TaskWebApp.Utils
 				//Remove the users from the MSAL's internal cache
 				await clientapp.RemoveAsync(account);
 			}
+            userTokenCache.Clear();
 
-			userTokenCache.Clear();
-		}
-	}
+        }
+    }
 }
