@@ -42,11 +42,6 @@ namespace TaskWebApp.Utils
 		private readonly DateTimeOffset cacheDuration = DateTimeOffset.Now.AddHours(48);
 
 		/// <summary>
-		/// The internal handle to the client's instance of the Cache
-		/// </summary>
-		private ITokenCache UserTokenCache;
-
-		/// <summary>
 		/// Once the user signes in, this will not be null and can be ontained via a call to Thread.CurrentPrincipal
 		/// </summary>
 		internal ClaimsPrincipal SignedInUser;
@@ -77,18 +72,15 @@ namespace TaskWebApp.Utils
 		{
 			this.SignedInUser = user;
 
-			this.UserTokenCache = tokenCache;
-			this.UserTokenCache.SetBeforeAccess(this.UserTokenCacheBeforeAccessNotification);
-			this.UserTokenCache.SetAfterAccess(this.UserTokenCacheAfterAccessNotification);
-			this.UserTokenCache.SetBeforeWrite(this.UserTokenCacheBeforeWriteNotification);
+			tokenCache.SetBeforeAccess(this.UserTokenCacheBeforeAccessNotification);
+			tokenCache.SetAfterAccess(this.UserTokenCacheAfterAccessNotification);
+            tokenCache.SetBeforeWrite(this.UserTokenCacheBeforeWriteNotification);
 
 			if (this.SignedInUser == null)
 			{
 				// No users signed in yet, so we return
 				return;
 			}
-
-			this.LoadUserTokenCacheFromMemory();
 		}
 
 		/// <summary>
@@ -107,7 +99,7 @@ namespace TaskWebApp.Utils
 		/// <summary>
 		/// Loads the user token cache from memory.
 		/// </summary>
-		private void LoadUserTokenCacheFromMemory()
+		private void LoadUserTokenCacheFromMemory(ITokenCacheSerializer tokenCache)
 		{
 			string cacheKey = this.GetMsalAccountId();
 
@@ -116,13 +108,13 @@ namespace TaskWebApp.Utils
 
 			// Ideally, methods that load and persist should be thread safe. MemoryCache.Get() is thread safe.
 			byte[] tokenCacheBytes = (byte[])this.memoryCache.Get(this.GetMsalAccountId());
-			this.UserTokenCache.DeserializeMsalV3(tokenCacheBytes);
+            tokenCache.DeserializeMsalV3(tokenCacheBytes);
 		}
 
 		/// <summary>
 		/// Persists the user token blob to the memoryCache.
 		/// </summary>
-		private void PersistUserTokenCache()
+		private void PersistUserTokenCache(ITokenCacheSerializer tokenCache)
 		{
 			string cacheKey = this.GetMsalAccountId();
 
@@ -130,7 +122,7 @@ namespace TaskWebApp.Utils
 				return;
 
 			// Ideally, methods that load and persist should be thread safe.MemoryCache.Get() is thread safe.
-			this.memoryCache.Set(this.GetMsalAccountId(), this.UserTokenCache.SerializeMsalV3(), this.cacheDuration);
+			this.memoryCache.Set(this.GetMsalAccountId(), tokenCache.SerializeMsalV3(), this.cacheDuration);
 		}
 
 		/// <summary>
@@ -139,9 +131,6 @@ namespace TaskWebApp.Utils
 		public void Clear()
 		{
 			this.memoryCache.Remove(this.GetMsalAccountId());
-
-			// Nulls the currently deserialized instance
-			this.LoadUserTokenCacheFromMemory();
 		}
 
 		/// <summary>
@@ -155,7 +144,7 @@ namespace TaskWebApp.Utils
 			// if the access operation resulted in a cache update
 			if (args.HasStateChanged)
 			{
-				this.PersistUserTokenCache();
+				this.PersistUserTokenCache(args.TokenCache);
 			}
 		}
 
@@ -165,7 +154,7 @@ namespace TaskWebApp.Utils
 		/// <param name="args">Contains parameters used by the MSAL call accessing the cache.</param>
 		private void UserTokenCacheBeforeAccessNotification(TokenCacheNotificationArgs args)
 		{
-			this.LoadUserTokenCacheFromMemory();
+			this.LoadUserTokenCacheFromMemory(args.TokenCache);
 		}
 
 		/// <summary>
