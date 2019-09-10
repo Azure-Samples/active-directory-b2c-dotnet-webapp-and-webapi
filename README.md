@@ -114,6 +114,7 @@ In this section, you will change the code in both projects to use your tenant.
 
 1. Open the `Web.config` file for the `TaskWebApp` project.
 1. Find the key `ida:Tenant` and replace the value with your `<your-tenant-name>.onmicrosoft.com`.
+1. Find the key `ida:AadInstance` and replace the value with your `<your-tenant-name>.b2clogin.com`.
 1. Find the key `ida:TenantId` and replace the value with your Directory ID.
 1. Find the key `ida:ClientId` and replace the value with the Application ID from your web application `My Test ASP.NET Web Application` registration in the Azure portal.
 1. Find the key `ida:ClientSecret` and replace the value with the Client secret from your web application in in the Azure portal.
@@ -143,6 +144,7 @@ In this section, you will change the code in both projects to use your tenant.
 
 1. Open the `Web.config` file for the `TaskService` project.
 1. Find the key `ida:Tenant` and replace the value with your `<your-tenant-name>.onmicrosoft.com`.
+1. Find the key `ida:AadInstance` and replace the value with your `<your-tenant-name>.b2clogin.com`.
 1. Find the key `ida:ClientId` and replace the value with the Application ID from your web API `My Test ASP.NET Web API` registration in the Azure portal.
 1. Find the key `ida:SignUpSignInPolicyId` and replace the value with the policy name you created, e.g. `b2c_1_SiUpIn`
 1. Find the keys representing the scopes, e.g. `api:ReadScope` and `api:WriteScope` and replace the values with the corresponding scope names you created if needed, e.g. `read` and `write`
