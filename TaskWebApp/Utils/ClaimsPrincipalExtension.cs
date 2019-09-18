@@ -54,11 +54,11 @@ namespace TaskWebApp.Utils
 		/// <returns>Unique object ID of the identity, or <c>null</c> if it cannot be found</returns>
 		public static string GetObjectId(this ClaimsPrincipal claimsPrincipal)
         {
-            var objIdclaim = claimsPrincipal.FindFirst(ClaimConstants.ObjectId);
+            var objIdclaim = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier);
 
             if (objIdclaim == null)
             {
-                objIdclaim = claimsPrincipal.FindFirst("oid");
+                objIdclaim = claimsPrincipal.FindFirst("sub");
             }
 
             return objIdclaim != null ? objIdclaim.Value : string.Empty;
