@@ -33,7 +33,7 @@ namespace TaskService.Controllers
         {
             HasRequiredScopes(ReadPermission);
 
-            var owner = CheckClaimMatch(objectIdElement);
+            var owner = CheckClaimMatch(ClaimTypes.NameIdentifier);
 
             IEnumerable<Models.Task> userTasks = db.Where(t => t.Owner == owner);
             return userTasks;
@@ -49,7 +49,7 @@ namespace TaskService.Controllers
             if (String.IsNullOrEmpty(task.Text))
                 throw new WebException("Please provide a task description");
 
-            var owner = CheckClaimMatch(objectIdElement);
+            var owner = CheckClaimMatch(ClaimTypes.NameIdentifier);
 
             task.Id = taskId++;
             task.Owner = owner;
@@ -65,7 +65,7 @@ namespace TaskService.Controllers
         {
             HasRequiredScopes(WritePermission);
 
-            var owner = CheckClaimMatch(objectIdElement);
+            var owner = CheckClaimMatch(ClaimTypes.NameIdentifier);
 
             Models.Task task = db.Where(t => t.Owner.Equals(owner) && t.Id.Equals(id)).FirstOrDefault();
             db.Remove(task);
