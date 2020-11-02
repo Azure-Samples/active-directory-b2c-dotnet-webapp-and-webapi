@@ -1,6 +1,7 @@
 ﻿using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Owin.Host.SystemWeb;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Notifications;
@@ -29,7 +30,11 @@ namespace TaskWebApp
 
 			app.SetDefaultSignInAsAuthenticationType(CookieAuthenticationDefaults.AuthenticationType);
 
-			app.UseCookieAuthentication(new CookieAuthenticationOptions());
+			app.UseCookieAuthentication(new CookieAuthenticationOptions
+			{
+				// ASP.NET web host compatible cookie manager
+				CookieManager = new SystemWebChunkingCookieManager()
+			});
 
 			app.UseOpenIdConnectAuthentication(
 				new OpenIdConnectAuthenticationOptions
@@ -58,7 +63,10 @@ namespace TaskWebApp
 					},
 
 					// Specify the scope by appending all of the scopes requested into one string (separated by a blank space)
-					Scope = $"openid profile offline_access {Globals.ReadTasksScope} {Globals.WriteTasksScope}"
+					Scope = $"openid profile offline_access {Globals.ReadTasksScope} {Globals.WriteTasksScope}",
+
+					// ASP.NET web host compatible cookie manager
+					CookieManager = new SystemWebCookieManager()
 				}
 			);
 		}
