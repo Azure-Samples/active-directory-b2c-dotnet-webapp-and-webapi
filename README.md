@@ -81,15 +81,15 @@ Follow the instructions at [register a Web API with Azure AD B2C](https://docs.m
 
 Provide the following values for the ASP.NET Web API registration:
 
-- Provide a descriptive Name for the ASP.NET Web API, for example, `My Test ASP.NET Web API`. You will identify this application by its Name whenever working in the Azure portal.
-- Mark **Yes** for the **Web App/Web API** setting for your application.
-- Set the **Reply URL** to `https://localhost:44332/`. This is the port number that this ASP.NET Web API sample is configured to run on. 
-- Set the **AppID URI** to `demoapi`. This AppID URI is a unique identifier representing this particular ASP.NET Web API. The AppID URI is used to construct the scopes that are configured in your ASP.NET Web Application. For example, in this ASP.NET Web API sample, the scope will have the value `https://<your-tenant-name>.onmicrosoft.com/demoapi/read`
-- Create the application.
-- Once the application is created, open your `My Test ASP.NET Web API` application and then open the **Published Scopes** window (in the left nav menu). Add the following 2 scopes:
-  - **Scope** named `read` followed by a description `demoing a read scenario`.
-  - **Scope** named `write` followed by a description `demoing a write scenario`.
-- Click **Save**.
+| Configuration           | Value                                                                                                                                       | Note                                                                                                                               |
+|-------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| Application Name        | My Test ASP.NET Web API                                                                                                                     | You may call this anything                                                                                                         |
+| Supported account types | Accounts in any organizational directory or any identity provider                                                                           |                                                                                                                                    |
+| Redirect URI (Web)      | https://localhost:44332/                                                                                                                    | This is the port number that this ASP.NET Web API sample <br/> is configured to run on                                             |
+| Permissions             | Grant admin consent to openid and offline_access permissions                                                                                |                                                                                                                                    |
+| AppID                   | demoapi                                                                                                                                     | In this Node.js Web API sample, the scope will have the value<br/>  `https://<your-tenant-name>.onmicrosoft.com/demoapi/demo.read` |
+| Create Scope                 | Scope Name: "read"; <br/> Admin consent display name: "demoing a read scenario";<br/> Admin consent description: "demoing a read scenario"  | This is located in the Expose an API tab                                                                                           |
+| Create Scope                 | Scope Name: "write"; <br/> Admin consent display name: "writing a read scenario";<br/> Admin consent description: "writing a read scenario" | This is located in the Expose an API tab                                                                                           |
 
 ### Step 4: Register your ASP.NET Web Application with Azure AD B2C
 
@@ -97,12 +97,15 @@ Follow the instructions at [register a Web Application with Azure AD B2C](https:
 
 Your web application registration should include the following information:
 
-- Provide a descriptive Name for your web appliation, for example, `My Test ASP.NET Web Application`. You can identify this application by its Name within the Azure portal.
-- Mark **Yes** for the **Include web app / web API** option.
-- Set the Reply URL to `https://localhost:44316/` This is the port number that this ASP.NET Web Application sample is configured to run on. 
-- Create your application.
-- Once the application is created, you need to create a Web App client secret. Go to the **Keys** page for your Web App registration and click **Generate Key**. Note: You will only see the secret once. Make sure you copy it.
-- Open your `My Test ASP.NET Web Application` and open the **API Access** window (in the left nav menu). Click Add and select the name of the Web API you registered previously, for example `My Test ASP.NET Web API`. Select the scope(s) you defined previously, for example, `read` and `write` and hit **Ok**.
+| Configuration           | Value                                                                                     | Note                                                                                   |
+|-------------------------|-------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| Application Name        | My Test ASP.NET Web Application                                                           | You may call this anything                                                             |
+| Supported account types | Accounts in any organizational directory or any identity provider                         |                                                                                        |
+| Redirect URI (Web)      | https://localhost:44316/                                                                  | This is the port number that this ASP.NET Web API sample <br/> is configured to run on |
+| Permissions             | Grant admin consent to openid and offline_access permissions                              |                                                                                        |
+| Create Secret           | <generated during creation><br/>You will only see the secret once. Make sure you copy it. | This is located in the Certificates & secrets tab                                      |
+| Select Scope            | read                                                                                      | Choose the previous configured scope                                                   |
+| Select Scope            | write                                                                                     | Choose the previous configured scope                                                   |
 
 ### Step 5: Configure your Visual Studio project with your Azure AD B2C app registrations
 
