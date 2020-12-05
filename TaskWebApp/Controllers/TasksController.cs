@@ -15,7 +15,7 @@ namespace TaskWebApp.Controllers
 	[Authorize]
     public class TasksController : Controller
     {
-        private String apiEndpoint = Globals.ServiceUrl + "/api/tasks/";
+        private readonly string apiEndpoint = Globals.ServiceUrl + "/api/tasks/";
 
         // GET: Makes a call to the API and retrieves the list of tasks
         public async Task<ActionResult> Index()
@@ -40,7 +40,7 @@ namespace TaskWebApp.Controllers
                 switch (response.StatusCode)
                 {
                     case HttpStatusCode.OK:
-                        String responseString = await response.Content.ReadAsStringAsync();
+                        string responseString = await response.Content.ReadAsStringAsync();
                         JArray tasks = JArray.Parse(responseString);
                         ViewBag.Tasks = tasks;
                         return View();
@@ -172,7 +172,7 @@ namespace TaskWebApp.Controllers
         /*
          * Helper function for returning an error message
          */
-        private ActionResult ErrorAction(String message)
+        private ActionResult ErrorAction(string message)
         {
             return new RedirectResult("/Error?message=" + message);
         }
