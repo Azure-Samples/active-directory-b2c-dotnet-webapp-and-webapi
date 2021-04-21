@@ -45,9 +45,10 @@ Provide the following values for the ASP.NET Web API registration:
 
 - Provide a descriptive Name for the ASP.NET Web API, for example, `My Test ASP.NET Web API`. You will identify this application by its Name whenever working in the Azure portal.
 - Set the **Reply URL** to `https://localhost:44332/`. This is the port number that this ASP.NET Web API sample is configured to run on.
-- Set the **AppID URI** to `demoapi`. This AppID URI is a unique identifier representing this particular ASP.NET Web API. The AppID URI is used to construct the scopes that are configured in your ASP.NET Web Application. For example, in this ASP.NET Web API sample, the scope will have the value `https://<your-tenant-name>.onmicrosoft.com/demoapi/read`
 - Create the application.
-- Once the application is created, open your `My Test ASP.NET Web API` application and then open the **Published Scopes** window (in the left nav menu). Add the following 2 scopes:
+- Once the application is created, open your `My Test ASP.NET Web API` application and then open the **Expose API ** tab (in the left nav menu).
+- Set the **AppID URI** to `demoapi`. This AppID URI is a unique identifier representing this particular ASP.NET Web API. The AppID URI is used to construct the scopes that are configured in your ASP.NET Web Application. For example, in this ASP.NET Web API sample, the scope will have the value `https://<your-tenant-name>.onmicrosoft.com/demoapi/read`.
+- Add the following 2 scopes:
   - **Scope** named `read` followed by a description `demoing a read scenario`.
   - **Scope** named `write` followed by a description `demoing a write scenario`.
 - Click **Save**.
@@ -61,9 +62,10 @@ Your web application registration should include the following information:
 - Provide a descriptive Name for your web application, for example, `My Test ASP.NET Web Application`. You can identify this application by its Name within the Azure portal.
 - Set the Reply URL to `https://localhost:44316/` This is the port number that this ASP.NET Web Application sample is configured to run on.
 - Create your application.
-- Once the application is created, from the menu select **Authentication**. In the **Implict grant** section, select **Access tokens**.
-- Next, create a Web App client secret. In the Azure portal go to your **Azure AD B2C** instance. From the menu select **App registration**. Select the registration for your Web Application. From the menu select **Certificates & secrets** and click **New client secret**. Note: You will only see the secret once. Make sure you copy it.
+- Once the application is created, from the menu select **Authentication**. In the **Implicit grant** section, select **Access tokens**.
+- Next, create a Web App client secret. From the menu select **Certificates & secrets** and click **New client secret**. Note: You will only see the secret once. Make sure you copy it.
 - From the menu choose **API permissions**. Click **Add a permission**, switch to the **My APIs** tab, and select the name of the Web API you registered previously, for example `My Test ASP.NET Web API`. Select the scope(s) you defined previously, for example, `read` and `write` and select **Add permissions**.
+- Finally, while in the **API permissions** tab, make sure to press the **Grand admin consent for <your tenant>**.
 
 ### Step 5: Configure your Visual Studio project with your Azure AD B2C app registrations
 
