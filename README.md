@@ -61,7 +61,7 @@ Your web application registration should include the following information:
 - Provide a descriptive Name for your web application, for example, `My Test ASP.NET Web Application`. You can identify this application by its Name within the Azure portal.
 - Set the Reply URL to `https://localhost:44316/` This is the port number that this ASP.NET Web Application sample is configured to run on.
 - Create your application.
-- Once the application is created, from the menu select **Authentication**. In the **Implict grant** section, select **Access tokens**.
+- Once the application is created, from the menu select **Authentication**. In the **Implicit grant** section, select **Access tokens**.
 - Next, create a Web App client secret. In the Azure portal go to your **Azure AD B2C** instance. From the menu select **App registration**. Select the registration for your Web Application. From the menu select **Certificates & secrets** and click **New client secret**. Note: You will only see the secret once. Make sure you copy it.
 - From the menu choose **API permissions**. Click **Add a permission**, switch to the **My APIs** tab, and select the name of the Web API you registered previously, for example `My Test ASP.NET Web API`. Select the scope(s) you defined previously, for example, `read` and `write` and select **Add permissions**.
 
@@ -78,7 +78,7 @@ In this section, you will change the code in both projects to use your tenant.
 1. Find the key `ida:AadInstance` and replace the value with your `<your-tenant-name>.b2clogin.com`.
 1. Find the key `ida:TenantId` and replace the value with your Directory ID. You can get it by navigating to the registration information of one of your apps and copying the value of the **Directory (tenant) ID** property.
 1. Find the key `ida:ClientId` and replace the value with the Application ID from your web application `My Test ASP.NET Web Application` registration in the Azure portal.
-1. Find the key `ida:ClientSecret` and replace the value with the Client secret from your web application in in the Azure portal.
+1. Find the key `ida:ClientSecret` and replace the value with the Client secret from your web application in the Azure portal.
 1. Find the keys representing the policies, e.g. `ida:SignUpSignInPolicyId` and replace the values with the corresponding policy names you created, e.g. `b2c_1_SiUpIn`
 1. Change the `api:ApiIdentifier` key value to the App ID URI of the API you specified in the Web API registration. This App ID URI tells B2C which API your Web Application wants permissions to.
 
@@ -110,7 +110,7 @@ You can now perform all the previous steps as seen in the demo tenant environmen
 
 ## Known Issues
 
-- MSAL cache needs a TenantId along with the user's ObjectId to function. It retrieves these two from the claims returned in the id_token. As TenantId is not guranteed to be present in id_tokens issued by B2C unless the steps [listed in this document](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/AAD-B2C-specifics#caching-with-b2c-in-msalnet), 
+- MSAL cache needs a TenantId along with the user's ObjectId to function. It retrieves these two from the claims returned in the id_token. As TenantId is not guaranteed to be present in id_tokens issued by B2C unless the steps [listed in this document](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/AAD-B2C-specifics#caching-with-b2c-in-msalnet), 
 if you are following the workarounds listed in the doc and tenantId claim (tid) is available in the user's token, then please change the code in [ClaimsPrincipalsExtension.cs](https://github.com/Azure-Samples/active-directory-b2c-dotnet-webapp-and-webapi/blob/nvalluri-b2c/TaskWebApp/Utils/ClaimsPrincipalExtension.cs) GetB2CMsalAccountId() to let MSAL pick this from the claims instead.
 
 ## Next Steps
