@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -15,6 +16,40 @@ namespace TaskWebApp.Controllers
 	[Authorize]
     public class TasksController : Controller
     {
+        private static HttpClient client;
+
+        public class MyProxy : IWebProxy
+        {
+            public ICredentials Credentials
+            {
+                //get { return new NetworkCredential("user", "password"); }
+                get { return new NetworkCredential(ConfigurationManager.AppSettings["ProxyUsername"], ConfigurationManager.AppSettings["ProxyPassword"], ConfigurationManager.AppSettings["ProxyDomain"]); }
+                set { }
+            }
+
+            public Uri GetProxy(Uri destination)
+            {
+                return new Uri(ConfigurationManager.AppSettings["ProxyServerUrl"]);
+            }
+
+            public bool IsBypassed(Uri host)
+            {
+                return false;
+            }
+        }
+
+        private static void CreateHttpClient()
+        {
+            var config = new HttpClientHandler
+            {
+                UseProxy = true,
+                Proxy = new MyProxy()
+            };
+
+            //then you can simply pass the config to HttpClient
+            client = new HttpClient(config);
+        }
+
         private readonly string apiEndpoint = Globals.ServiceUrl + "/api/tasks/";
 
         // GET: Makes a call to the API and retrieves the list of tasks
@@ -28,8 +63,13 @@ namespace TaskWebApp.Controllers
                 IConfidentialClientApplication cca = MsalAppBuilder.BuildConfidentialClientApplication();
                 var accounts = await cca.GetAccountsAsync();
 				AuthenticationResult result = await cca.AcquireTokenSilent(scope, accounts.FirstOrDefault()).ExecuteAsync();
-                
-                HttpClient client = new HttpClient();
+
+                //HttpClient client = new HttpClient();
+                if (client == null)
+                {
+                    // It's best* to create a single HttpClient and reuse it                
+                    CreateHttpClient();
+                }
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, apiEndpoint);
 
                 // Add token to the Authorization header and make the request
@@ -85,7 +125,12 @@ namespace TaskWebApp.Controllers
                 var httpContent = new[] {new KeyValuePair<string, string>("Text", description)};
 
                 // Create the request
-                HttpClient client = new HttpClient();
+                //HttpClient client = new HttpClient();
+                if (client == null)
+                {
+                    // It's best* to create a single HttpClient and reuse it                
+                    CreateHttpClient();
+                }
                 HttpContent content = new FormUrlEncodedContent(httpContent);
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, apiEndpoint);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -134,7 +179,12 @@ namespace TaskWebApp.Controllers
 				var accounts = await cca.GetAccountsAsync();
 				AuthenticationResult result = await cca.AcquireTokenSilent(scope, accounts.FirstOrDefault()).ExecuteAsync();
 
-				HttpClient client = new HttpClient();
+                // HttpClient client = new HttpClient();
+                if (client == null)
+                {
+                    // It's best* to create a single HttpClient and reuse it                
+                    CreateHttpClient();
+                }
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, apiEndpoint + id);
 
                 // Add token to the Authorization header and send the request

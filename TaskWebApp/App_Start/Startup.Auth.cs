@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
@@ -23,6 +24,42 @@ namespace TaskWebApp
         * Configure the OWIN middleware
         */
 
+       
+        public class MyProxy : IWebProxy
+        {
+            public ICredentials Credentials
+            {
+                //get { return new NetworkCredential("user", "password"); }
+                get { return new NetworkCredential(ConfigurationManager.AppSettings["ProxyUsername"], ConfigurationManager.AppSettings["ProxyPassword"], ConfigurationManager.AppSettings["ProxyDomain"]); }
+                set { }
+            }
+
+            public Uri GetProxy(Uri destination)
+            {
+                return new Uri(ConfigurationManager.AppSettings["ProxyServerUrl"]);
+            }
+
+            public bool IsBypassed(Uri host)
+            {
+                return false;
+            }
+        }
+
+
+            //then you can simply pass the config to HttpClient
+
+
+            private HttpMessageHandler DetermineBackchannelHandler()
+        {             
+
+                return new HttpClientHandler()
+                {
+                    UseProxy = true,
+                    Proxy = new MyProxy()
+                };
+
+            }
+
         public void ConfigureAuth(IAppBuilder app)
         {
             // Required for Azure web apps, as by default they force TLS 1.2 and this project attempts 1.0
@@ -41,9 +78,10 @@ namespace TaskWebApp
                 {
                     // Generate the metadata address using the tenant and policy information
                     MetadataAddress = String.Format(Globals.WellKnownMetadata, Globals.Tenant, Globals.DefaultPolicy),
+                    BackchannelHttpHandler = DetermineBackchannelHandler(),
 
-                    // These are standard OpenID Connect parameters, with values pulled from web.config
-                    ClientId = Globals.ClientId,
+            // These are standard OpenID Connect parameters, with values pulled from web.config
+            ClientId = Globals.ClientId,
                     RedirectUri = Globals.RedirectUri,
                     PostLogoutRedirectUri = Globals.RedirectUri,
 
@@ -69,6 +107,8 @@ namespace TaskWebApp
                     CookieManager = new SystemWebCookieManager()
                 }
             );
+
+
         }
 
         /*

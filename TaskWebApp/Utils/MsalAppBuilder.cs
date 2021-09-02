@@ -23,11 +23,18 @@ SOFTWARE.
 ***********************************************************************************************/
 
 using Microsoft.Identity.Client;
+using System;
+using System.Configuration;
+using System.Net;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace TaskWebApp.Utils
 {
+
+
+
 	public static class MsalAppBuilder
 	{
 		/// <summary>
@@ -39,16 +46,47 @@ namespace TaskWebApp.Utils
 			return BuildConfidentialClientApplication(ClaimsPrincipal.Current);
 		}
 
-		/// <summary>
-		/// Shared method to create an IConfidentialClientApplication from configuration and attach the application's token cache implementation
-		/// </summary>
-		/// <param name="currentUser">The current ClaimsPrincipal</param>
-		public static IConfidentialClientApplication BuildConfidentialClientApplication(ClaimsPrincipal currentUser)
+        public class MyHttpClientFactory : IMsalHttpClientFactory
+        {
+            private static readonly HttpClient s_httpClient;
+
+            static MyHttpClientFactory()
+            {
+                var webProxy = new WebProxy(
+                    new Uri(ConfigurationManager.AppSettings["ProxyServerUrl"]),
+                    BypassOnLocal: false);
+
+                webProxy.Credentials = new NetworkCredential(ConfigurationManager.AppSettings["ProxyUsername"], ConfigurationManager.AppSettings["ProxyPassword"], ConfigurationManager.AppSettings["ProxyDomain"]);                
+
+                var proxyHttpClientHandler = new HttpClientHandler
+                {
+                    Proxy = webProxy,
+                    UseProxy = true,
+                };
+
+                s_httpClient = new HttpClient(proxyHttpClientHandler);
+
+            }
+
+            public HttpClient GetHttpClient()
+            {
+                return s_httpClient;
+            }
+        }
+
+        private static IMsalHttpClientFactory httpClientFactory = new MyHttpClientFactory();        
+
+        /// <summary>
+        /// Shared method to create an IConfidentialClientApplication from configuration and attach the application's token cache implementation
+        /// </summary>
+        /// <param name="currentUser">The current ClaimsPrincipal</param>
+        public static IConfidentialClientApplication BuildConfidentialClientApplication(ClaimsPrincipal currentUser)
 		{
-			IConfidentialClientApplication clientapp = ConfidentialClientApplicationBuilder.Create(Globals.ClientId)
-				  .WithClientSecret(Globals.ClientSecret)
-				  .WithRedirectUri(Globals.RedirectUri)
-				  .WithB2CAuthority(Globals.B2CAuthority)
+            IConfidentialClientApplication clientapp = ConfidentialClientApplicationBuilder.Create(Globals.ClientId)
+                  .WithClientSecret(Globals.ClientSecret)
+                  .WithRedirectUri(Globals.RedirectUri)
+                  .WithB2CAuthority(Globals.B2CAuthority)
+                  .WithHttpClientFactory(httpClientFactory)
 				  .Build();
 
 			MSALPerUserMemoryTokenCache userTokenCache = new MSALPerUserMemoryTokenCache(clientapp.UserTokenCache, currentUser ?? ClaimsPrincipal.Current);
