@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using TaskWebApp.Utils;
@@ -26,8 +27,9 @@ namespace TaskWebApp.Controllers
                 var scope = new string[] { Globals.ReadTasksScope };
                 
                 IConfidentialClientApplication cca = MsalAppBuilder.BuildConfidentialClientApplication();
+                
                 var accounts = await cca.GetAccountsAsync();
-				AuthenticationResult result = await cca.AcquireTokenSilent(scope, accounts.FirstOrDefault()).ExecuteAsync();
+                AuthenticationResult result = await cca.AcquireTokenSilent(scope, accounts.FirstOrDefault()).ExecuteAsync();
                 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, apiEndpoint);
