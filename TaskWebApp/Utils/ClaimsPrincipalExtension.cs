@@ -47,12 +47,25 @@ namespace TaskWebApp.Utils
 			return null;
 		}
 
-		/// <summary>
-		/// Get the unique object ID associated with the claimsPrincipal
-		/// </summary>
-		/// <param name="claimsPrincipal">Claims principal from which to retrieve the unique object id</param>
-		/// <returns>Unique object ID of the identity, or <c>null</c> if it cannot be found</returns>
-		public static string GetObjectId(this ClaimsPrincipal claimsPrincipal)
+        public static string GetB2CMsalAccountIdentifier(this ClaimsPrincipal claimsPrincipal)
+        {
+            string userObjectId = GetObjectId(claimsPrincipal);
+            string tenantId = Globals.TenantId;
+
+            if (!string.IsNullOrWhiteSpace(userObjectId) && !string.IsNullOrWhiteSpace(tenantId))
+            {
+                return $"{userObjectId}-{Globals.SignUpSignInPolicyId}.{tenantId}";
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Get the unique object ID associated with the claimsPrincipal
+        /// </summary>
+        /// <param name="claimsPrincipal">Claims principal from which to retrieve the unique object id</param>
+        /// <returns>Unique object ID of the identity, or <c>null</c> if it cannot be found</returns>
+        public static string GetObjectId(this ClaimsPrincipal claimsPrincipal)
         {
             var objIdclaim = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier);
 
