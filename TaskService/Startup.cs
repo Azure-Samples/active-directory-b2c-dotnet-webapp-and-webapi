@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Owin;
+﻿using System.Net;
 using Owin;
 
 namespace TaskService
@@ -11,6 +9,8 @@ namespace TaskService
         public void Configuration(IAppBuilder app)
         {
             ConfigureAuth(app);
+
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
         }
     }
 }
