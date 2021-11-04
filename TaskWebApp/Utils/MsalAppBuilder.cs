@@ -22,7 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ***********************************************************************************************/
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Client;
+using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.TokenCacheProviders.Distributed;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -51,7 +54,16 @@ namespace TaskWebApp.Utils
                   .WithB2CAuthority(Globals.B2CAuthority)
                   .Build();
 
-            MSALPerUserMemoryTokenCache userTokenCache = new MSALPerUserMemoryTokenCache(clientapp.UserTokenCache, currentUser ?? ClaimsPrincipal.Current);
+            clientapp.AddDistributedTokenCache(services =>
+            {
+                services.AddDistributedMemoryCache();
+                services.Configure<MsalDistributedTokenCacheAdapterOptions>(o =>
+                {
+                    o.Encrypt = true;
+                });
+            });
+
+            new MSALPerUserMemoryTokenCache(clientapp.UserTokenCache, currentUser ?? ClaimsPrincipal.Current);
             return clientapp;
         }
 
