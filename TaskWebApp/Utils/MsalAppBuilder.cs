@@ -63,7 +63,6 @@ namespace TaskWebApp.Utils
                 });
             });
 
-            new MSALPerUserMemoryTokenCache(clientapp.UserTokenCache, currentUser ?? ClaimsPrincipal.Current);
             return clientapp;
         }
 
