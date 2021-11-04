@@ -112,6 +112,11 @@ You can now perform all the previous steps as seen in the demo tenant environmen
 
 - MSAL cache needs a TenantId along with the user's ObjectId to function. It retrieves these two from the claims returned in the id_token. As TenantId is not guaranteed to be present in id_tokens issued by B2C unless the steps [listed in this document](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/AAD-B2C-specifics#caching-with-b2c-in-msalnet), 
 if you are following the workarounds listed in the doc and tenantId claim (tid) is available in the user's token, then please change the code in [ClaimsPrincipalsExtension.cs](https://github.com/Azure-Samples/active-directory-b2c-dotnet-webapp-and-webapi/blob/nvalluri-b2c/TaskWebApp/Utils/ClaimsPrincipalExtension.cs) GetB2CMsalAccountId() to let MSAL pick this from the claims instead.
+- This sample code by default only supports verifying the token signatures of multiple policies (signup, profile edit, password reset etc), if all those policies are configured to use the same token signing key. Otherwise, if one policy is using a different token signing key you will get the error:
+
+  IDX10501: Signature validation failed. Unable to match keys
+
+  For instance, this means that you can't use a custom policy for SignUpSignIn, and then a built in user flow policy for profile edit. As custom policies and user flows will always have different token signing keys.
 
 ## Next Steps
 
