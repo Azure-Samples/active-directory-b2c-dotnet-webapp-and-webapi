@@ -116,7 +116,7 @@ if you are following the workarounds listed in the doc and tenantId claim (tid) 
 
   IDX10501: Signature validation failed. Unable to match keys
 
-  For instance, this means that you can't use a custom policy for SignUpSignIn, and then a built in user flow policy for profile edit. As custom policies and user flows will always have different token signing keys.
+  For instance, this means that you can't use a custom policy for SignUpSignIn, and then a built in user flow policy for profile edit. As custom policies and user flows will always have different token signing keys. This is because for AAD B2C each user flow routes to a separate authorization server.
 
 ## Next Steps
 
