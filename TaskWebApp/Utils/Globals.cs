@@ -14,9 +14,9 @@ namespace TaskWebApp.Utils
         public static string ServiceUrl = ConfigurationManager.AppSettings["api:TaskServiceUrl"];
 
         // B2C policy identifiers
-        public static string SignUpSignInPolicyId = ConfigurationManager.AppSettings["ida:SignUpSignInPolicyId"];
-        public static string EditProfilePolicyId = ConfigurationManager.AppSettings["ida:EditProfilePolicyId"];
-        public static string ResetPasswordPolicyId = ConfigurationManager.AppSettings["ida:ResetPasswordPolicyId"];
+        public static string SignUpSignInPolicyId = ConfigurationManager.AppSettings["ida:SignUpSignInPolicyId"].ToLower();
+        public static string EditProfilePolicyId = ConfigurationManager.AppSettings["ida:EditProfilePolicyId"].ToLower();
+        public static string ResetPasswordPolicyId = ConfigurationManager.AppSettings["ida:ResetPasswordPolicyId"].ToLower();
 
         public static string DefaultPolicy = SignUpSignInPolicyId;
 
