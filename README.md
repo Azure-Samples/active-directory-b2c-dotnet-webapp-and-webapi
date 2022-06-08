@@ -9,6 +9,8 @@ products:
   - azure-active-directory
 ---
 
+> We have renamed the default branch to main. To rename your local repo follow the directions [here](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/renaming-a-branch#updating-a-local-clone-after-a-branch-name-changes).
+
 # Azure AD B2C: Call an ASP.NET Web API from an ASP.NET Web App
 
 This sample contains a solution file that contains two projects: `TaskWebApp` and `TaskService`.
