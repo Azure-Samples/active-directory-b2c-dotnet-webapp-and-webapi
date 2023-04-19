@@ -127,7 +127,7 @@ namespace TaskWebApp
 				 This object contains the property `AuthenticationTicket.Identity`, which is a `ClaimsIdentity`, created from the token received from
 				 Azure AD and has a full set of claims.
 				 */
-                IConfidentialClientApplication confidentialClient = MsalAppBuilder.BuildConfidentialClientApplication(new ClaimsPrincipal(notification.AuthenticationTicket.Identity));
+                IConfidentialClientApplication confidentialClient = MsalAppBuilder.BuildConfidentialClientApplication();
 
                 // Upon successful sign in, get & cache a token using MSAL
                 AuthenticationResult result = await confidentialClient.AcquireTokenByAuthorizationCode(Globals.Scopes, notification.Code).ExecuteAsync();
