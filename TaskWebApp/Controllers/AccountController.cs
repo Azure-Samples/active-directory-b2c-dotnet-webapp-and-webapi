@@ -70,9 +70,12 @@ namespace TaskWebApp.Controllers
             {
                 // Remove all tokens from MSAL's cache
                 var clientApp= MsalAppBuilder.BuildConfidentialClientApplication();
-                string accountId = ClaimsPrincipal.Current.GetB2CMsalAccountIdentifier();
+                string accountId = ClaimsPrincipal.Current.GetB2CMsalAccountIdentifier(Globals.SignUpSignInPolicyId);
                 IAccount account = await clientApp.GetAccountAsync(accountId);
-                await clientApp.RemoveAsync(account);
+                if (account != null)
+                {
+                    await clientApp.RemoveAsync(account);
+                }
 
                 // Then sign-out from OWIN
 				IEnumerable<AuthenticationDescription> authTypes = HttpContext.GetOwinContext().Authentication.GetAuthenticationTypes();

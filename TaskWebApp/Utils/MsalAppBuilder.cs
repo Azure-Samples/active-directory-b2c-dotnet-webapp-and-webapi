@@ -22,12 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ***********************************************************************************************/
 
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.TokenCacheProviders.Distributed;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web.Services.Description;
 
 namespace TaskWebApp.Utils
 {
@@ -44,14 +46,12 @@ namespace TaskWebApp.Utils
                   .WithB2CAuthority(Globals.B2CAuthority)
                   .Build();
 
-            clientapp.AddDistributedTokenCache(services =>
-            {
-                services.AddDistributedMemoryCache();
-                services.Configure<MsalDistributedTokenCacheAdapterOptions>(o =>
-                {
-                    o.Encrypt = true;
-                });
-            });
+            // Important: for simplicity, this sample showcases an in-memory cache
+            // For eviction policies and for using a distribued cache see:
+            // https://learn.microsoft.com/en-us/azure/active-directory/develop/msal-net-token-cache-serialization?tabs=aspnet
+
+            //Add an in-memory token cache with options
+            clientapp.AddInMemoryTokenCache();
 
             return clientapp;
         }       
