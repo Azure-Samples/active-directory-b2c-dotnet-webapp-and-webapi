@@ -54,7 +54,7 @@ namespace TaskWebApp.Utils
 
             if (!string.IsNullOrWhiteSpace(userObjectId) && !string.IsNullOrWhiteSpace(tenantId))
             {
-                return $"{userObjectId}-{Globals.SignUpSignInPolicyId}.{tenantId}";
+                return $"{userObjectId}-{Globals.SignUpSignInPolicyId}.{tenantId}".ToLowerInvariant();
             }
 
             return null;
