@@ -46,13 +46,13 @@ Follow the instructions at [register a Web API with Azure AD B2C](https://docs.m
 Provide the following values for the ASP.NET Web API registration:
 
 - Provide a descriptive Name for the ASP.NET Web API, for example, `My Test ASP.NET Web API`. You will identify this application by its Name whenever working in the Azure portal.
-- Set the **Reply URL** to `https://localhost:44332/`. This is the port number that this ASP.NET Web API sample is configured to run on.
-- Set the **AppID URI** to `demoapi`. This AppID URI is a unique identifier representing this particular ASP.NET Web API. The AppID URI is used to construct the scopes that are configured in your ASP.NET Web Application. For example, in this ASP.NET Web API sample, the scope will have the value `https://<your-tenant-name>.onmicrosoft.com/demoapi/read`
+- Set the **platform** to `Web` and the **Reply URI** to `https://localhost:44332/`. This is the port number that this ASP.NET Web API sample is configured to run on.
 - Create the application.
-- Once the application is created, open your `My Test ASP.NET Web API` application and then open the **Published Scopes** window (in the left nav menu). Add the following 2 scopes:
-  - **Scope** named `read` followed by a description `demoing a read scenario`.
-  - **Scope** named `write` followed by a description `demoing a write scenario`.
-- Click **Save**.
+- Once the application is created, open your `My Test ASP.NET Web API` application and then open the **Expose an API** window (in the left nav menu).
+- Set the **AppID URI** to `demoapi`. This AppID URI is a unique identifier representing this particular ASP.NET Web API. The AppID URI is used to construct the scopes that are configured in your ASP.NET Web Application. For example, in this ASP.NET Web API sample, the scope will have the value `https://<your-tenant-name>.onmicrosoft.com/demoapi/read`
+- Add the following 2 scopes:
+  - **Scope** named `read` followed by a display name and description of `demoing a read scenario`.
+  - **Scope** named `write` followed by a display name and description of  `demoing a write scenario`.
 
 ### Step 4: Register your ASP.NET Web Application with Azure AD B2C
 
@@ -61,11 +61,12 @@ Follow the instructions at [register a Web Application with Azure AD B2C](https:
 Your web application registration should include the following information:
 
 - Provide a descriptive Name for your web application, for example, `My Test ASP.NET Web Application`. You can identify this application by its Name within the Azure portal.
-- Set the Reply URL to `https://localhost:44316/` This is the port number that this ASP.NET Web Application sample is configured to run on.
+- Set the **platform** to `Web` and the **Reply URI** to `https://localhost:44316/` This is the port number that this ASP.NET Web Application sample is configured to run on.
 - Create your application.
-- Once the application is created, from the menu select **Authentication**. In the **Implicit grant** section, select **Access tokens**.
-- Next, create a Web App client secret. In the Azure portal go to your **Azure AD B2C** instance. From the menu select **App registration**. Select the registration for your Web Application. From the menu select **Certificates & secrets** and click **New client secret**. Note: You will only see the secret once. Make sure you copy it.
+- Once the application is created, from the menu select **Authentication**. In the **Implicit grant** section, select **Access tokens** and click **Save**.
+- Next, create a Web App client secret. From the left menu select **Certificates & secrets** and click **New client secret**. Note: You will only see the secret once. Make sure you copy it.
 - From the menu choose **API permissions**. Click **Add a permission**, switch to the **My APIs** tab, and select the name of the Web API you registered previously, for example `My Test ASP.NET Web API`. Select the scope(s) you defined previously, for example, `read` and `write` and select **Add permissions**.
+- Click the **Grant admin consent for <tenant name>** button.
 
 ### Step 5: Configure your Visual Studio project with your Azure AD B2C app registrations
 
@@ -84,9 +85,7 @@ In this section, you will change the code in both projects to use your tenant.
 1. Find the keys representing the policies, e.g. `ida:SignUpSignInPolicyId` and replace the values with the corresponding policy names you created, e.g. `b2c_1_SiUpIn`
 1. Change the `api:ApiIdentifier` key value to the App ID URI of the API you specified in the Web API registration. This App ID URI tells B2C which API your Web Application wants permissions to.
 
-    ```csharp
-    <!--<add key="api:ApiIdentifier" value="https://fabrikamb2c.onmicrosoft.com/api/" />—>
-
+    ```xml
     <add key="api:ApiIdentifier" value="https://<your-tenant-name>.onmicrosoft.com/demoapi/" />
     ```
 
@@ -112,7 +111,7 @@ You can now perform all the previous steps as seen in the demo tenant environmen
 
 ## Known Issues
 
-- MSAL cache needs a TenantId along with the user's ObjectId to function. It retrieves these two from the claims returned in the id_token. As TenantId is not guaranteed to be present in id_tokens issued by B2C unless the steps [listed in this document](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/AAD-B2C-specifics#caching-with-b2c-in-msalnet), 
+- MSAL cache needs a TenantId along with the user's ObjectId to function. It retrieves these two from the claims returned in the id_token. As TenantId is not guaranteed to be present in id_tokens issued by B2C unless you perform the steps [listed in this document](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/AAD-B2C-specifics#caching-with-b2c-in-msalnet), 
 if you are following the workarounds listed in the doc and tenantId claim (tid) is available in the user's token, then please change the code in [ClaimsPrincipalsExtension.cs](https://github.com/Azure-Samples/active-directory-b2c-dotnet-webapp-and-webapi/blob/nvalluri-b2c/TaskWebApp/Utils/ClaimsPrincipalExtension.cs) GetB2CMsalAccountId() to let MSAL pick this from the claims instead.
 - This sample code by default only supports verifying the token signatures of multiple policies (signup, profile edit, password reset etc), if all those policies are configured to use the same token signing key. Otherwise, if one policy is using a different token signing key you will get the error:
 
