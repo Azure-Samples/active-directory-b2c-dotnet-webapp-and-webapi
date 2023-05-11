@@ -1,7 +1,9 @@
-﻿using Microsoft.Owin.Security;
+﻿using Microsoft.Identity.Client;
+using Microsoft.Owin.Security;
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -66,7 +68,16 @@ namespace TaskWebApp.Controllers
             // To sign out the user, you should issue an OpenIDConnect sign out request.
             if (Request.IsAuthenticated)
             {
-				await MsalAppBuilder.ClearUserTokenCache();
+                // Remove all tokens from MSAL's cache
+                var clientApp= MsalAppBuilder.BuildConfidentialClientApplication();
+                string accountId = ClaimsPrincipal.Current.GetB2CMsalAccountIdentifier(Globals.SignUpSignInPolicyId);
+                IAccount account = await clientApp.GetAccountAsync(accountId);
+                if (account != null)
+                {
+                    await clientApp.RemoveAsync(account);
+                }
+
+                // Then sign-out from OWIN
 				IEnumerable<AuthenticationDescription> authTypes = HttpContext.GetOwinContext().Authentication.GetAuthenticationTypes();
                 HttpContext.GetOwinContext().Authentication.SignOut(authTypes.Select(t => t.AuthenticationType).ToArray());
                 Request.GetOwinContext().Authentication.GetAuthenticationTypes();

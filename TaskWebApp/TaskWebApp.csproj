@@ -284,7 +284,6 @@
     <Compile Include="Utils\Constants.cs" />
     <Compile Include="Utils\Globals.cs" />
     <Compile Include="Utils\MsalAppBuilder.cs" />
-    <Compile Include="Utils\MSALPerUserMemoryTokenCache.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap-theme.css" />
