@@ -23,7 +23,7 @@ namespace TaskWebApp.Controllers
             try
             {
                 // Retrieve the token with the specified scopes
-                AuthenticationResult result = await AcquireTokenForScopes(new string[] { Globals.WriteTasksScope });
+                AuthenticationResult result = await AcquireTokenForScopes(new string[] { Globals.ReadTasksScope, Globals.WriteTasksScope });
 
                 HttpClient client = new HttpClient();
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, apiEndpoint);
